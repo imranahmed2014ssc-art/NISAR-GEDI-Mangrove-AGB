@@ -1,0 +1,85 @@
+PHASE 9 — FINAL DEFENSIBILITY OF EXPANDED EXTRA TREES 9P
+============================================================================================
+Run time: 2026-10-27T02:35:09+08:00
+Expanded table SHA256: de9fc736ec77d38dae527020b2d037c4567f3c814f874d9843da230c6bf67dc0
+Records: 1,641
+Occupied 3-km blocks: 54
+
+PURPOSE
+Assess whether the ET9P improvement over ET3P is spatially robust and
+scientifically interpretable without introducing a new algorithm or feature search.
+
+LOCKED DESIGN
+- Same frozen 1,641 GEDI records.
+- Same 3-km cv_block_id units.
+- Same five outer spatial folds.
+- Same 500-m training exclusion buffer.
+- No new model-family comparison.
+- No new feature selection.
+
+CORE OOF PERFORMANCE
+model      RMSE       MAE       R2  predicted_SD  observed_SD  pred_to_obs_SD_ratio
+ET_3P 41.262069 34.980262 0.012656      4.618342    41.538346              0.111183
+ET_9P 39.767698 33.099059 0.082878     10.443421    41.538346              0.251416
+
+PAIRED 3-KM BLOCK BOOTSTRAP (5,000 replicates)
+Delta is defined as ET9P minus ET3P; negative RMSE/MAE means ET9P is better.
+                  metric      mean    median     CI2.5    CI97.5  fraction_below_zero  fraction_above_zero
+delta_RMSE_new_minus_old -1.493207 -1.521151 -2.107909 -0.763396               0.9996               0.0004
+ delta_MAE_new_minus_old -1.873770 -1.891319 -2.385987 -1.267575               1.0000               0.0000
+  delta_R2_new_minus_old  0.070657  0.071720  0.036621  0.100052               0.0004               0.9996
+
+RMSE improvement 95% CI entirely below zero: True
+MAE improvement 95% CI entirely below zero: True
+Interpretation: ROBUST IMPROVEMENT SUPPORTED BY 3-KM BLOCK BOOTSTRAP
+
+FOLD-BY-FOLD CONSISTENCY
+ outer_fold   n  old_RMSE  new_RMSE  delta_RMSE_new_minus_old   old_MAE   new_MAE  delta_MAE_new_minus_old   old_R2   new_R2
+          1 328 41.279743 39.586502                 -1.693241 35.697793 33.358509                -2.339283 0.022875 0.101392
+          2 335 41.850538 40.172841                 -1.677697 34.579725 32.585407                -1.994318 0.019480 0.096518
+          3 325 40.688169 38.791807                 -1.896362 34.775182 32.668780                -2.106401 0.003779 0.094477
+          4 329 40.651211 39.366025                 -1.285186 34.426141 32.622252                -1.803889 0.008382 0.070091
+          5 324 41.815040 40.886645                 -0.928396 35.436396 34.283268                -1.153128 0.005244 0.048926
+Outer folds with lower RMSE for ET9P: 5/5
+
+HELD-OUT PERMUTATION IMPORTANCE
+Positive delta RMSE means model performance worsened when that predictor was permuted.
+These are predictive contributions, not ecological causal effects.
+Correlated predictors can share or dilute permutation importance.
+            predictor  mean_delta_RMSE  median_fold_delta_RMSE  min_fold_delta_RMSE  max_fold_delta_RMSE  folds_positive
+    HV_MeanLin_dB_9x9         1.015834                1.081639             0.748216             1.214747               5
+         HH_SD_dB_9x9         0.505933                0.492810             0.398155             0.604109               5
+         HV_SD_dB_9x9         0.502760                0.523624             0.330413             0.652847               5
+                HV_SD         0.060392                0.068602             0.011558             0.121420               5
+         HH_SD_dB_3x3         0.003938                0.000264            -0.006468             0.016092               3
+                HH_dB        -0.001877               -0.002222            -0.016099             0.020094               2
+                HV_dB        -0.010024                0.018684            -0.115651             0.048749               3
+    HH_MeanLin_dB_9x9        -0.022889                0.032252            -0.337528             0.108768               4
+PolContrast_SD_dB_9x9        -0.025559               -0.028681            -0.060980             0.005298               1
+
+ET9P REPRODUCTION AUDIT
+ outer_fold  train_n  test_n  baseline_RMSE_recomputed  max_abs_prediction_diff_vs_saved_OOF
+          1     1207     328                 39.586502                          7.105427e-15
+          2     1162     335                 40.172841                          7.105427e-15
+          3     1211     325                 38.791807                          7.105427e-15
+          4     1223     329                 39.366025                          7.105427e-15
+          5     1213     324                 40.886645                          7.105427e-15
+Maximum absolute prediction difference vs saved OOF: 7.105427357601002e-15
+
+OUT-OF-FOLD RESIDUAL MORAN'S I
+ distance_m  n_pairs  Morans_I_residual  permutation_p_two_sided  perm_mean_I  perm_sd_I coordinate_source  n_permutations
+        500    10118           0.152708                    0.002    -0.000252   0.009916       utm_x/utm_y             499
+       1000    40037           0.093176                    0.002    -0.000300   0.005011       utm_x/utm_y             499
+       2000   119083           0.053917                    0.002    -0.000876   0.002746       utm_x/utm_y             499
+       3000   212803           0.037021                    0.002    -0.000618   0.001789       utm_x/utm_y             499
+
+FINAL INTERPRETATION RULE
+A robust ET9P improvement can be reported if the paired 3-km block bootstrap
+supports lower held-out RMSE/MAE. This does NOT automatically make the model
+suitable for operational AGBD mapping. Mapping still requires review of the
+absolute held-out R2, residual biomass-regime bias, prediction compression,
+and residual spatial structure.
+
+STATUS
+PHASE 9 COMPLETE — FINAL SCIENTIFIC REVIEW REQUIRED
+FINAL AGBD MAP REMAINS ON HOLD.
