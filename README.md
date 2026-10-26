@@ -2,7 +2,7 @@
 
 Code supporting the manuscript:
 
-**Early Evaluation of NISAR L-Band for Mangrove Aboveground Biomass Estimation Using Machine and Deep Learning**
+**Early Evaluation of NISAR L-Band Sensitivity to Mangrove Aboveground Biomass Using GEDI and Spatial Machine Learning**
 
 ## Authors
 
