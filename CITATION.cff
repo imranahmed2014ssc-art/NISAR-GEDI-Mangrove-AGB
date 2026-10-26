@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "Please cite the archived Zenodo release of this repository."
-title: "Code and Supporting Material for Early Evaluation of NISAR L-Band for Mangrove Aboveground Biomass Estimation Using Machine and Deep Learning"
+title: "Code and Supporting Material for Early Evaluation of NISAR L-Band Sensitivity to Mangrove Aboveground Biomass Using GEDI and Spatial Machine Learning"
 type: software
 authors:
   - family-names: "Ahmed"
