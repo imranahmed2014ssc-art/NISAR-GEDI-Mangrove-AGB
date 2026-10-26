@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "Please cite the archived Zenodo release of this repository."
+title: "Code and Supporting Material for Early Evaluation of NISAR L-Band for Mangrove Aboveground Biomass Estimation Using Machine and Deep Learning"
+type: software
+authors:
+  - family-names: "Ahmed"
+    given-names: "Imran"
+    orcid: "https://orcid.org/0009-0004-6010-620X"
+  - family-names: "Islam"
+    given-names: "Md. Sarafat"
+    orcid: "https://orcid.org/0009-0006-5661-9410"
+  - family-names: "Islam"
+    given-names: "Sheikh Tawhidul"
+    orcid: "https://orcid.org/0000-0002-9697-4306"
+version: "1.0.0"
+license: MIT
+keywords:
+  - NISAR
+  - GEDI
+  - mangrove
+  - aboveground biomass
+  - L-band SAR
+  - machine learning
+  - spatial cross-validation
