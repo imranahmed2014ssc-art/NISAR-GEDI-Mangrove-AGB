@@ -1,0 +1,5 @@
+unit_definition,nominal_groups,total_observations,min_group_n,median_group_n,mean_group_n,max_group_n,kish_effective_groups,largest_group_fraction
+3-km spatial blocks (cv_block_id),54,1641,1,8.5,30.38888888888889,237,16.28702846878232,0.14442413162705667
+GEDI acquisition/source-file passes,8,1641,3,80.0,205.125,675,3.4261923816333724,0.4113345521023766
+GEDI acquisition-date x beam groups,40,1641,1,6.0,41.025,229,13.86218026263635,0.13954905545399146
+GEDI beam only,8,1641,5,171.0,205.125,461,4.144060558588033,0.2809262644728824

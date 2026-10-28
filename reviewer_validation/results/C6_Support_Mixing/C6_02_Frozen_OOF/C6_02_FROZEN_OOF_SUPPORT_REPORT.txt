@@ -1,0 +1,79 @@
+==============================================================================================================
+C6 STEP 2 - FROZEN OOF SUPPORT / EDGE-MIXING ANALYSIS
+==============================================================================================================
+
+STATUS
+--------------------------------------------------------------------------------------------------------------
+NO MODEL WAS FITTED.
+NO MODEL OR PREDICTOR FAMILY WAS RESELECTED.
+NO SUPPORT THRESHOLD WAS CHANGED.
+Existing frozen C5 OOF predictions were used.
+C1-C5 and C6 Step 1B remain frozen.
+
+INTEGRITY
+--------------------------------------------------------------------------------------------------------------
+Rows: 1641
+Unique shots: 1641
+Spatial blocks: 54
+Primary-class mismatches: 0
+
+FULL14P PERFORMANCE BY PRIMARY 90-M SUPPORT CLASS
+--------------------------------------------------------------------------------------------------------------
+support_class    n  blocks  observed_mean  observed_sd      RMSE       MAE     bias       R2  Pearson_r  Spearman_rho  predicted_SD  predicted_to_observed_SD_ratio  rRMSE_percent
+          ALL 1641      54      54.621414    41.538346 40.995837 34.280155 -1.93892 0.025356   0.181909      0.135451     10.651921                        0.256436      75.054514
+  INTERIOR_95 1574      53      55.566202    41.614485 41.369154 34.730213 -2.14827 0.011128   0.147685      0.106866      9.871840                        0.237221      74.450210
+   EDGE_MIXED   67      22      32.425940    32.852594 30.956466 23.707146  2.97922 0.098648   0.335361      0.292322     13.447333                        0.409323      95.468215
+
+FULL14P THRESHOLD SENSITIVITY
+--------------------------------------------------------------------------------------------------------------
+ threshold support_class    n  blocks  observed_mean  observed_sd      RMSE       MAE      bias       R2  Pearson_r  Spearman_rho  predicted_SD  predicted_to_observed_SD_ratio  rRMSE_percent
+      1.00      INTERIOR 1556      52      55.808897    41.691262 41.516550 34.876062 -2.245831 0.007726   0.139824      0.098685      9.767255                        0.234276      74.390557
+      1.00    EDGE_MIXED   85      25      32.883483    31.718896 29.902198 23.371541  3.679338 0.100689   0.344945      0.303791     13.111656                        0.413370      90.933790
+      0.95      INTERIOR 1574      53      55.566202    41.614485 41.369154 34.730213 -2.148270 0.011128   0.147685      0.106866      9.871840                        0.237221      74.450210
+      0.95    EDGE_MIXED   67      22      32.425940    32.852594 30.956466 23.707146  2.979220 0.098648   0.335361      0.292322     13.447333                        0.409323      95.468215
+      0.90      INTERIOR 1586      53      55.313936    41.605711 41.271729 34.620690 -2.035285 0.015369   0.157225      0.113505     10.011395                        0.240625      74.613618
+      0.90    EDGE_MIXED   55      21      34.651602    34.245047 32.033729 24.460347  0.839884 0.108773   0.337588      0.323737     13.878265                        0.405263      92.445162
+      0.75      INTERIOR 1622      53      54.897311    41.540463 41.100809 34.407189 -1.986537 0.020452   0.170572      0.125345     10.397201                        0.250291      74.868528
+      0.75    EDGE_MIXED   19      15      31.068500    34.828667 30.740282 23.435448  2.126039 0.177714   0.426867      0.217544     14.036962                        0.403029      98.943566
+
+9X9 VERSUS 5X5 CONTEXT BY SUPPORT CLASS
+--------------------------------------------------------------------------------------------------------------
+support_class    n  blocks  A09_9x9_RMSE  A08_5x5_RMSE  delta_RMSE_9x9_minus_5x5  A09_9x9_MAE  A08_5x5_MAE  delta_MAE_9x9_minus_5x5  A09_9x9_R2  A08_5x5_R2  delta_R2_9x9_minus_5x5
+          ALL 1641      54     41.099456     41.372705                 -0.273249    34.364578    34.851342                -0.486764    0.020423    0.007355                0.013069
+  INTERIOR_95 1574      53     41.467431     41.684574                 -0.217142    34.813260    35.185775                -0.372514    0.006424   -0.004009                0.010433
+   EDGE_MIXED   67      22     31.231416     33.214073                 -1.982657    23.823899    26.994672                -3.170773    0.082566   -0.037614                0.120180
+
+CONTINUOUS SUPPORT / ERROR ASSOCIATIONS
+--------------------------------------------------------------------------------------------------------------
+                                      relationship    n  Pearson_r  Pearson_p  Spearman_rho   Spearman_p                                status
+       90m_mangrove_fraction_vs_A11_absolute_error 1641   0.092634   0.000171      0.126432 2.771015e-07                                    OK
+             90m_mangrove_fraction_vs_A11_residual 1641  -0.018609   0.451251     -0.029135 2.381596e-01                                    OK
+      numberOfLooks_mean_9x9_vs_A11_absolute_error 1641  -0.013970   0.571720      0.004900 8.427808e-01                                    OK
+            numberOfLooks_mean_9x9_vs_A11_residual 1641   0.071293   0.003858      0.080934 1.032632e-03                                    OK
+ GEDI_to_NISAR_center_offset_vs_A11_absolute_error 1641   0.010042   0.684379      0.016562 5.025807e-01                                    OK
+     gcov_valid_fraction_9x9_vs_A11_absolute_error 1641        NaN        NaN           NaN          NaN NOT_TESTABLE_CONSTANT_OR_INSUFFICIENT
+exception_clean_fraction_9x9_vs_A11_absolute_error 1641        NaN        NaN           NaN          NaN NOT_TESTABLE_CONSTANT_OR_INSUFFICIENT
+ positive_looks_fraction_9x9_vs_A11_absolute_error 1641        NaN        NaN           NaN          NaN NOT_TESTABLE_CONSTANT_OR_INSUFFICIENT
+
+BLOCK-BOOTSTRAP SENSITIVITY
+--------------------------------------------------------------------------------------------------------------
+                 analysis     metric  valid_bootstrap_reps     median     CI_2.5   CI_97.5
+ A09_MINUS_A08_EDGE_MIXED delta_RMSE                  2000  -1.958051  -5.007264  0.580187
+ A09_MINUS_A08_EDGE_MIXED  delta_MAE                  2000  -3.210447  -6.110274 -0.137027
+ A09_MINUS_A08_EDGE_MIXED delta_bias                  2000  -8.880141 -12.589260 -5.283536
+ A09_MINUS_A08_EDGE_MIXED   delta_R2                  2000   0.118216  -0.033080  0.386695
+A09_MINUS_A08_INTERIOR_95 delta_RMSE                  2000  -0.221668  -0.655767  0.253778
+A09_MINUS_A08_INTERIOR_95  delta_MAE                  2000  -0.375653  -0.764365  0.044775
+A09_MINUS_A08_INTERIOR_95 delta_bias                  2000  -0.012374  -0.700436  0.526952
+A09_MINUS_A08_INTERIOR_95   delta_R2                  2000   0.010653  -0.012475  0.032063
+  A11_EDGE_MINUS_INTERIOR delta_RMSE                  2000 -10.366524 -17.002838 -3.023725
+  A11_EDGE_MINUS_INTERIOR  delta_MAE                  2000 -10.946822 -15.152239 -5.495906
+  A11_EDGE_MINUS_INTERIOR delta_bias                  2000   4.824072  -7.122364 13.541914
+  A11_EDGE_MINUS_INTERIOR   delta_R2                  2000   0.088721  -0.141466  0.248044
+
+INTERPRETATION BOUNDARY
+--------------------------------------------------------------------------------------------------------------
+The primary edge/mixed group is small and must be treated as a sensitivity subset rather than an equally powered validation stratum.
+Differences in RMSE or R2 between interior and edge groups can also reflect differences in the AGBD distribution, not only support mixing.
+Binary GMW background is not interpreted as open water specifically; it may represent water or other non-GMW cover.
+GCOV-valid, exception-clean, and positive-look fractions are constant at 1.0 across retained 9x9 windows and therefore cannot explain within-sample error variation.

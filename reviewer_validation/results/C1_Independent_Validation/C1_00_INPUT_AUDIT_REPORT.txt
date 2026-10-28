@@ -1,0 +1,157 @@
+==========================================================================================
+C1 REVIEWER VALIDATION - FROZEN INPUT AUDIT
+==========================================================================================
+
+PURPOSE
+------------------------------------------------------------------------------------------
+Identify and verify the frozen 1,641-record modeling table, locked ET3P/ET9P predictor fields, coordinates, spatial identifiers, GEDI target, uncertainty fields, acquisition information, and Phase 9 dependencies before new reviewer-validation analyses.
+
+RULES
+------------------------------------------------------------------------------------------
+1. No model is fitted by this script.
+2. No existing Phase 9 result is modified.
+3. ET3P and ET9P predictor definitions remain frozen.
+4. The audit is used only to identify the correct inputs.
+
+==========================================================================================
+1641-ROW CSV CANDIDATES
+==========================================================================================
+
+------------------------------------------------------------------------------------------
+CANDIDATE 1
+------------------------------------------------------------------------------------------
+File:
+D:\NISAR_Mangrove_Paper\04_Matched_Data\GEDI_NISAR_matched_candidate_80pct.csv
+
+Rows: 1641
+Columns: 46
+All ET3P predictors present: True
+All ET9P predictors present: False
+Missing ET3P predictors: []
+Missing ET9P predictors: ['HH_SD_dB_3x3', 'HH_MeanLin_dB_9x9', 'HV_MeanLin_dB_9x9', 'HH_SD_dB_9x9', 'HV_SD_dB_9x9', 'PolContrast_SD_dB_9x9']
+Coordinate candidates: ['longitude', 'latitude', 'lat_lowestmode', 'lon_lowestmode', 'utm_x', 'utm_y']
+Fold/block candidates: ['repeat_group_id', 'repeat_group_size']
+ID/track candidates: ['shot_number', 'beam', 'repeat_group_id', 'HH_dB_valid_fraction', 'HV_dB_valid_fraction', 'HH_minus_HV_valid_fraction', 'HV_SD_valid_fraction', 'valid_NISAR_fraction', 'footprint_grid_coverage_fraction', 'all_predictors_valid_pixel_count']
+Target candidates: ['agbd', 'agbd_se']
+Uncertainty candidates: ['agbd_se']
+Date/time candidates: ['acquisition_date', 'delta_time', 'gedi_datetime', 'nisar_datetime', 'candidate_primary_80pct']
+
+------------------------------------------------------------------------------------------
+CANDIDATE 2
+------------------------------------------------------------------------------------------
+File:
+D:\NISAR_Mangrove_Paper\04_Matched_Data\GEDI_NISAR_modeling_table_FINAL.csv
+
+Rows: 1641
+Columns: 46
+All ET3P predictors present: True
+All ET9P predictors present: False
+Missing ET3P predictors: []
+Missing ET9P predictors: ['HH_SD_dB_3x3', 'HH_MeanLin_dB_9x9', 'HV_MeanLin_dB_9x9', 'HH_SD_dB_9x9', 'HV_SD_dB_9x9', 'PolContrast_SD_dB_9x9']
+Coordinate candidates: ['longitude', 'latitude', 'lat_lowestmode', 'lon_lowestmode', 'utm_x', 'utm_y']
+Fold/block candidates: ['repeat_group_id', 'repeat_group_size']
+ID/track candidates: ['shot_number', 'beam', 'repeat_group_id', 'HH_dB_valid_fraction', 'HV_dB_valid_fraction', 'HH_minus_HV_valid_fraction', 'HV_SD_valid_fraction', 'valid_NISAR_fraction', 'footprint_grid_coverage_fraction', 'all_predictors_valid_pixel_count']
+Target candidates: ['agbd', 'agbd_se']
+Uncertainty candidates: ['agbd_se']
+Date/time candidates: ['acquisition_date', 'delta_time', 'gedi_datetime', 'nisar_datetime', 'candidate_primary_80pct']
+
+------------------------------------------------------------------------------------------
+CANDIDATE 3
+------------------------------------------------------------------------------------------
+File:
+D:\NISAR_Mangrove_Paper\04_Matched_Data\Predictor_Expansion\Phase8C2\Tables\expanded_predictor_footprint_QC.csv
+
+Rows: 1641
+Columns: 25
+All ET3P predictors present: False
+All ET9P predictors present: False
+Missing ET3P predictors: ['HH_dB', 'HV_dB', 'HV_SD']
+Missing ET9P predictors: ['HH_dB', 'HV_dB', 'HV_SD']
+Coordinate candidates: []
+Fold/block candidates: []
+ID/track candidates: ['shot_number', 'expanded_all_valid_fraction', 'HH_SD_dB_3x3_valid_fraction', 'HH_MeanLin_dB_5x5_valid_fraction', 'HV_MeanLin_dB_5x5_valid_fraction', 'HH_SD_dB_5x5_valid_fraction', 'HV_SD_dB_5x5_valid_fraction', 'PolContrast_SD_dB_5x5_valid_fraction', 'HH_MeanLin_dB_9x9_valid_fraction', 'HV_MeanLin_dB_9x9_valid_fraction', 'HH_SD_dB_9x9_valid_fraction', 'HV_SD_dB_9x9_valid_fraction', 'PolContrast_SD_dB_9x9_valid_fraction']
+Target candidates: []
+Uncertainty candidates: []
+Date/time candidates: []
+
+------------------------------------------------------------------------------------------
+CANDIDATE 4
+------------------------------------------------------------------------------------------
+File:
+D:\NISAR_Mangrove_Paper\04_Matched_Data\Predictor_Expansion\Phase8C2\Tables\GEDI_NISAR_expanded_predictors_1641.csv
+
+Rows: 1641
+Columns: 77
+All ET3P predictors present: True
+All ET9P predictors present: True
+Missing ET3P predictors: []
+Missing ET9P predictors: []
+Coordinate candidates: ['longitude', 'latitude', 'lat_lowestmode', 'lon_lowestmode', 'utm_x', 'utm_y']
+Fold/block candidates: ['repeat_group_id', 'repeat_group_size', 'cv_block_x', 'cv_block_y', 'cv_block_id', 'spatial_fold']
+ID/track candidates: ['shot_number', 'beam', 'repeat_group_id', 'HH_dB_valid_fraction', 'HV_dB_valid_fraction', 'HH_minus_HV_valid_fraction', 'HV_SD_valid_fraction', 'valid_NISAR_fraction', 'footprint_grid_coverage_fraction', 'all_predictors_valid_pixel_count', 'cv_block_id', 'HH_SD_dB_3x3_valid_fraction', 'HH_MeanLin_dB_5x5_valid_fraction', 'HV_MeanLin_dB_5x5_valid_fraction', 'HH_SD_dB_5x5_valid_fraction', 'HV_SD_dB_5x5_valid_fraction', 'PolContrast_SD_dB_5x5_valid_fraction', 'HH_MeanLin_dB_9x9_valid_fraction', 'HV_MeanLin_dB_9x9_valid_fraction', 'HH_SD_dB_9x9_valid_fraction', 'HV_SD_dB_9x9_valid_fraction', 'PolContrast_SD_dB_9x9_valid_fraction', 'expanded_all_valid_fraction']
+Target candidates: ['agbd', 'agbd_se', 'agbd_balance_bin']
+Uncertainty candidates: ['agbd_se']
+Date/time candidates: ['acquisition_date', 'delta_time', 'gedi_datetime', 'nisar_datetime', 'candidate_primary_80pct']
+
+==========================================================================================
+PHASE 9 SCRIPT AUDIT
+==========================================================================================
+
+Phase 9 script:
+D:\NISAR_Mangrove_Paper\05_ML_DL\Predictor_Expansion\Phase9_Scripts\phase9_et9p_final_defensibility.py
+
+Script exists: True
+
+CSV file references found in Phase 9 script:
+  ET3P_ET9P_core_metrics.csv
+  ET9P_permutation_importance_aggregated.csv
+  ET9P_permutation_importance_by_fold.csv
+  ET9P_reproduction_audit.csv
+  ET9P_residual_MoransI.csv
+  ET9P_vs_ET3P_block_bootstrap_5000.csv
+  ET9P_vs_ET3P_block_bootstrap_summary.csv
+  ET9P_vs_ET3P_fold_comparison.csv
+  ET_OOF_predictions.csv
+  Fold_{fold}_TEST.csv
+  Fold_{fold}_TRAIN_BUFFERED_500m.csv
+  GEDI_NISAR_expanded_predictors_1641.csv
+  expanded9P_OOF_predictions.csv
+  expanded9P_selected_hyperparameters.csv
+
+Seed/random_state values found:
+  ['42']
+
+Locked ET9P feature names found in Phase 9 script:
+  HH_dB: True
+  HV_dB: True
+  HV_SD: True
+  HH_SD_dB_3x3: True
+  HH_MeanLin_dB_9x9: True
+  HV_MeanLin_dB_9x9: True
+  HH_SD_dB_9x9: True
+  HV_SD_dB_9x9: True
+  PolContrast_SD_dB_9x9: True
+
+==========================================================================================
+LOCKED REVIEWER-VALIDATION FEATURES
+==========================================================================================
+
+ET3P
+  HH_dB
+  HV_dB
+  HV_SD
+
+ET9P
+  HH_dB
+  HV_dB
+  HV_SD
+  HH_SD_dB_3x3
+  HH_MeanLin_dB_9x9
+  HV_MeanLin_dB_9x9
+  HH_SD_dB_9x9
+  HV_SD_dB_9x9
+  PolContrast_SD_dB_9x9
+
+==========================================================================================
+END OF AUDIT
+==========================================================================================

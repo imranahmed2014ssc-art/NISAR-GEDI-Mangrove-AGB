@@ -1,0 +1,265 @@
+﻿==================== LINES 90-290 ====================
+  90: # - retain HH fine-scale heterogeneity to complement legacy HV_SD
+  91: # - use 9x9 contextual means and heterogeneity as the broad spatial scale
+  92: # - retain 9x9 polarization-contrast heterogeneity
+  93: # - omit 5x5 family because it carried the highest VIF-like redundancy in the
+  94: #   full 14-variable candidate space and represents an intermediate version of
+  95: #   the same constructs
+  96: # - omit HH_minus_HV exact algebraic redundancy
+  97: FEATURES = [
+  98:     "HH_dB",
+  99:     "HV_dB",
+ 100:     "HV_SD",
+ 101:     "HH_SD_dB_3x3",
+ 102:     "HH_MeanLin_dB_9x9",
+ 103:     "HV_MeanLin_dB_9x9",
+ 104:     "HH_SD_dB_9x9",
+ 105:     "HV_SD_dB_9x9",
+ 106:     "PolContrast_SD_dB_9x9",
+ 107: ]
+ 108: 
+ 109: # Extra Trees search space: modest, low-memory, training-only.
+ 110: ET_PARAM_SPACE = {
+ 111:     "n_estimators": [400, 700, 1000],
+ 112:     "max_depth": [6, 8, 12, None],
+ 113:     "min_samples_split": [2, 5, 10, 20],
+ 114:     "min_samples_leaf": [1, 3, 6, 10],
+ 115:     "max_features": ["sqrt", 0.5, 0.8, 1.0],
+ 116:     "bootstrap": [True, False],
+ 117: }
+ 118: 
+ 119: # MLP search space: modest and training-only.
+ 120: MLP_PARAM_SPACE = {
+ 121:     "hidden_layer_sizes": [(32,), (64,), (32, 16), (64, 32)],
+ 122:     "activation": ["relu", "tanh"],
+ 123:     "alpha": [0.001, 0.01, 0.1, 1.0],
+ 124:     "learning_rate_init": [0.0005, 0.001, 0.003],
+ 125: }
+ 126: 
+ 127: ET_N_ITER = 18
+ 128: MLP_N_ITER = 12
+ 129: 
+ 130: # ============================================================
+ 131: # HELPERS
+ 132: # ============================================================
+ 133: def sha256_file(path, chunk_size=8 * 1024 * 1024):
+ 134:     h = hashlib.sha256()
+ 135:     with open(path, "rb") as f:
+ 136:         for chunk in iter(lambda: f.read(chunk_size), b""):
+ 137:             h.update(chunk)
+ 138:     return h.hexdigest()
+ 139: 
+ 140: def metric_row(y, p, model, fold=None, train_n=None, test_n=None):
+ 141:     y = np.asarray(y, float)
+ 142:     p = np.asarray(p, float)
+ 143:     rmse = float(np.sqrt(mean_squared_error(y, p)))
+ 144:     mae = float(mean_absolute_error(y, p))
+ 145:     r2 = float(r2_score(y, p))
+ 146:     bias = float(np.mean(p - y))
+ 147:     mean_y = float(np.mean(y))
+ 148:     rrmse = float(rmse / mean_y * 100.0) if mean_y != 0 else np.nan
+ 149: 
+ 150:     if len(y) >= 3 and np.std(y) > 0 and np.std(p) > 0:
+ 151:         pr = float(pearsonr(y, p).statistic)
+ 152:         sr = float(spearmanr(y, p).statistic)
+ 153:     else:
+ 154:         pr = np.nan
+ 155:         sr = np.nan
+ 156: 
+ 157:     obs_sd = float(np.std(y, ddof=1))
+ 158:     pred_sd = float(np.std(p, ddof=1))
+ 159: 
+ 160:     return {
+ 161:         "model": model,
+ 162:         "fold": fold,
+ 163:         "n": len(y),
+ 164:         "train_n": train_n,
+ 165:         "test_n": test_n,
+ 166:         "RMSE_Mg_ha": rmse,
+ 167:         "MAE_Mg_ha": mae,
+ 168:         "R2": r2,
+ 169:         "Bias_Mg_ha": bias,
+ 170:         "rRMSE_percent": rrmse,
+ 171:         "Pearson_r": pr,
+ 172:         "Spearman_rho": sr,
+ 173:         "observed_mean": mean_y,
+ 174:         "predicted_mean": float(np.mean(p)),
+ 175:         "observed_sd": obs_sd,
+ 176:         "predicted_sd": pred_sd,
+ 177:         "pred_to_obs_SD_ratio": pred_sd / obs_sd if obs_sd > 0 else np.nan,
+ 178:     }
+ 179: 
+ 180: def shot_set(path):
+ 181:     d = pd.read_csv(path)
+ 182:     if "shot_number" not in d.columns:
+ 183:         raise RuntimeError(f"shot_number missing: {path}")
+ 184:     return set(pd.to_numeric(d["shot_number"], errors="raise").astype("int64"))
+ 185: 
+ 186: def fold_files(fold):
+ 187:     fd = BUFFER_ROOT / f"Fold_{fold}"
+ 188:     train = fd / f"Fold_{fold}_TRAIN_BUFFERED_500m.csv"
+ 189:     test = fd / f"Fold_{fold}_TEST.csv"
+ 190:     if not train.exists() or not test.exists():
+ 191:         raise FileNotFoundError(
+ 192:             f"Missing fold {fold} buffered files:\n{train}\n{test}"
+ 193:         )
+ 194:     return train, test
+ 195: 
+ 196: def grouped_rmse_linear(X, y, groups):
+ 197:     cv = GroupKFold(n_splits=INNER_SPLITS)
+ 198:     vals = []
+ 199:     for tr, va in cv.split(X, y, groups):
+ 200:         m = LinearRegression()
+ 201:         m.fit(X[tr], y[tr])
+ 202:         pred = m.predict(X[va])
+ 203:         vals.append(np.sqrt(mean_squared_error(y[va], pred)))
+ 204:     return float(np.mean(vals))
+ 205: 
+ 206: def tune_et(X, y, groups, fold):
+ 207:     candidates = list(ParameterSampler(
+ 208:         ET_PARAM_SPACE, n_iter=ET_N_ITER,
+ 209:         random_state=RANDOM_SEED + fold
+ 210:     ))
+ 211:     cv = GroupKFold(n_splits=INNER_SPLITS)
+ 212: 
+ 213:     best = None
+ 214:     rows = []
+ 215: 
+ 216:     for ci, params in enumerate(candidates, start=1):
+ 217:         rmses = []
+ 218:         for tr, va in cv.split(X, y, groups):
+ 219:             m = ExtraTreesRegressor(
+ 220:                 **params,
+ 221:                 random_state=RANDOM_SEED,
+ 222:                 n_jobs=1,
+ 223:             )
+ 224:             m.fit(X[tr], y[tr])
+ 225:             pred = m.predict(X[va])
+ 226:             rmses.append(np.sqrt(mean_squared_error(y[va], pred)))
+ 227: 
+ 228:         mean_rmse = float(np.mean(rmses))
+ 229:         row = {
+ 230:             "outer_fold": fold,
+ 231:             "candidate": ci,
+ 232:             "mean_inner_RMSE": mean_rmse,
+ 233:             "params_json": json.dumps(params, sort_keys=True),
+ 234:         }
+ 235:         rows.append(row)
+ 236: 
+ 237:         if best is None or mean_rmse < best["mean_inner_RMSE"]:
+ 238:             best = {**row, "params": params}
+ 239: 
+ 240:     return best, pd.DataFrame(rows)
+ 241: 
+ 242: def make_mlp(params):
+ 243:     return Pipeline([
+ 244:         ("scale", StandardScaler()),
+ 245:         ("mlp", MLPRegressor(
+ 246:             hidden_layer_sizes=params["hidden_layer_sizes"],
+ 247:             activation=params["activation"],
+ 248:             alpha=params["alpha"],
+ 249:             learning_rate_init=params["learning_rate_init"],
+ 250:             solver="adam",
+ 251:             max_iter=1500,
+ 252:             early_stopping=False,
+ 253:             random_state=RANDOM_SEED,
+ 254:         )),
+ 255:     ])
+ 256: 
+ 257: def tune_mlp(X, y, groups, fold):
+ 258:     candidates = list(ParameterSampler(
+ 259:         MLP_PARAM_SPACE, n_iter=MLP_N_ITER,
+ 260:         random_state=RANDOM_SEED + 100 + fold
+ 261:     ))
+ 262:     cv = GroupKFold(n_splits=INNER_SPLITS)
+ 263: 
+ 264:     best = None
+ 265:     rows = []
+ 266: 
+ 267:     for ci, params in enumerate(candidates, start=1):
+ 268:         rmses = []
+ 269:         for tr, va in cv.split(X, y, groups):
+ 270:             m = make_mlp(params)
+ 271:             m.fit(X[tr], y[tr])
+ 272:             pred = m.predict(X[va])
+ 273:             rmses.append(np.sqrt(mean_squared_error(y[va], pred)))
+ 274: 
+ 275:         mean_rmse = float(np.mean(rmses))
+ 276:         safe_params = {
+ 277:             k: (list(v) if isinstance(v, tuple) else v)
+ 278:             for k, v in params.items()
+ 279:         }
+ 280:         row = {
+ 281:             "outer_fold": fold,
+ 282:             "candidate": ci,
+ 283:             "mean_inner_RMSE": mean_rmse,
+ 284:             "params_json": json.dumps(safe_params, sort_keys=True),
+ 285:         }
+ 286:         rows.append(row)
+ 287: 
+ 288:         if best is None or mean_rmse < best["mean_inner_RMSE"]:
+ 289:             best = {**row, "params": params}
+ 290: 
+
+==================== LINES 480-540 ====================
+ 480:         groups = train["cv_block_id"].to_numpy()
+ 481: 
+ 482:         # Linear
+ 483:         print("  Linear 9P...")
+ 484:         lin = Pipeline([
+ 485:             ("scale", StandardScaler()),
+ 486:             ("model", LinearRegression())
+ 487:         ])
+ 488:         lin.fit(Xtr, ytr)
+ 489:         pred = lin.predict(Xte)
+ 490:         m = metric_row(
+ 491:             yte, pred, "EXPANDED_Linear_9P",
+ 492:             fold=fold, train_n=len(train), test_n=len(test)
+ 493:         )
+ 494:         fold_rows.append(m)
+ 495:         oof_parts.append(pd.DataFrame({
+ 496:             "shot_number": test["shot_number"].to_numpy(),
+ 497:             "outer_fold": fold,
+ 498:             "observed_agbd": yte,
+ 499:             "predicted_agbd": pred,
+ 500:             "model": "EXPANDED_Linear_9P",
+ 501:         }))
+ 502:         print(f"    RMSE={m['RMSE_Mg_ha']:.3f}, R2={m['R2']:.4f}")
+ 503: 
+ 504:         # Extra Trees
+ 505:         print(f"  Extra Trees 9P â€” inner grouped search ({ET_N_ITER} candidates)...")
+ 506:         et_best, et_trace = tune_et(Xtr, ytr, groups, fold)
+ 507:         et_tune_rows.append(et_trace)
+ 508:         et = ExtraTreesRegressor(
+ 509:             **et_best["params"],
+ 510:             random_state=RANDOM_SEED,
+ 511:             n_jobs=1,
+ 512:         )
+ 513:         et.fit(Xtr, ytr)
+ 514:         pred = et.predict(Xte)
+ 515:         m = metric_row(
+ 516:             yte, pred, "EXPANDED_ET_9P",
+ 517:             fold=fold, train_n=len(train), test_n=len(test)
+ 518:         )
+ 519:         fold_rows.append(m)
+ 520:         oof_parts.append(pd.DataFrame({
+ 521:             "shot_number": test["shot_number"].to_numpy(),
+ 522:             "outer_fold": fold,
+ 523:             "observed_agbd": yte,
+ 524:             "predicted_agbd": pred,
+ 525:             "model": "EXPANDED_ET_9P",
+ 526:         }))
+ 527:         selected_rows.append({
+ 528:             "outer_fold": fold,
+ 529:             "model": "EXPANDED_ET_9P",
+ 530:             "best_inner_RMSE": et_best["mean_inner_RMSE"],
+ 531:             "best_params_json": et_best["params_json"],
+ 532:         })
+ 533:         print(
+ 534:             f"    RMSE={m['RMSE_Mg_ha']:.3f}, R2={m['R2']:.4f}; "
+ 535:             f"best inner RMSE={et_best['mean_inner_RMSE']:.3f}"
+ 536:         )
+ 537: 
+ 538:         # MLP
+ 539:         print(f"  MLP 9P â€” inner grouped search ({MLP_N_ITER} candidates)...")
+ 540:         mlp_best, mlp_trace = tune_mlp(Xtr, ytr, groups, fold)

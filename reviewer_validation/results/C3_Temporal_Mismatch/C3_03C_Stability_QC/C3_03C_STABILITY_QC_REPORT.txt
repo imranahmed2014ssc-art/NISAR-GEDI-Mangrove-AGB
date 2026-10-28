@@ -1,0 +1,86 @@
+====================================================================================================
+C3 STEP 3C - LOCAL QC OF DISTURBANCE / STABILITY SCREEN
+====================================================================================================
+
+STATUS
+----------------------------------------------------------------------------------------------------
+NO EARTH ENGINE REQUEST WAS MADE.
+NO AGBD MODEL WAS FITTED.
+NO SCREENING THRESHOLD WAS CHANGED.
+This step audits the already-generated C3 Step 3B point table only.
+
+INTEGRITY
+----------------------------------------------------------------------------------------------------
+Rows: 1641
+Unique shots: 1641
+Class reproduction mismatches: 0
+Indicator-count reproduction mismatches: 0
+
+CHANGE DISTRIBUTIONS
+----------------------------------------------------------------------------------------------------
+        variable  threshold  n_total  n_valid  n_missing  signed_min  signed_q025  signed_median  signed_q975  signed_max  abs_median  abs_q90  abs_q95  abs_q99  abs_max  max_abs_fraction_of_threshold  n_at_or_above_threshold  pct_at_or_above_threshold
+      delta_NDVI       0.15     1641     1641          0   -0.093541    -0.033935       0.007435     0.041349    0.068709    0.013353 0.033340 0.040214 0.051308 0.093541                       0.623604                        0                        0.0
+       delta_NBR       0.15     1641     1641          0   -0.053216    -0.013345       0.016039     0.061529    0.107764    0.016847 0.046273 0.055749 0.068150 0.107764                       0.718426                        0                        0.0
+delta_DW_vegprob       0.25     1641     1641          0   -0.121589    -0.054518      -0.014447     0.025915    0.071142    0.016864 0.039704 0.048402 0.074798 0.121589                       0.486354                        0                        0.0
+  delta_DW_water       0.25     1641     1641          0   -0.059154    -0.018541       0.000102     0.020881    0.040794    0.007362 0.017854 0.020010 0.024820 0.059154                       0.236614                        0                        0.0
+
+OPTICAL OBSERVATION SUPPORT
+----------------------------------------------------------------------------------------------------
+         variable  n_valid  n_missing   minimum       q05    median       q95   maximum  n_below_minimum_support
+baseline_S2_count     1641          0 26.035124 29.430642 35.000000 43.045549 46.692308                        0
+  follow_S2_count     1641          0 33.236025 36.298755 40.055901 44.000000 47.672878                        0
+baseline_DW_count     1641          0 20.000000 22.000000 27.000000 37.000000 39.000000                        0
+  follow_DW_count     1641          0 27.000000 28.000000 30.890269 33.000000 35.000000                        0
+
+PHYSICAL RANGE CHECKS
+----------------------------------------------------------------------------------------------------
+           variable expected_range  n_missing  n_outside_expected_range
+      baseline_NDVI        [-1, 1]          0                         0
+        follow_NDVI        [-1, 1]          0                         0
+       baseline_NBR        [-1, 1]          0                         0
+         follow_NBR        [-1, 1]          0                         0
+  baseline_DW_trees         [0, 1]          0                         0
+baseline_DW_flooded         [0, 1]          0                         0
+  baseline_DW_water         [0, 1]          0                         0
+baseline_DW_vegprob         [0, 1]          0                         0
+    follow_DW_trees         [0, 1]          0                         0
+  follow_DW_flooded         [0, 1]          0                         0
+    follow_DW_water         [0, 1]          0                         0
+  follow_DW_vegprob         [0, 1]          0                         0
+
+PASS-LEVEL MAXIMUM CHANGES
+----------------------------------------------------------------------------------------------------
+                                              source_file          acquisition_date   n  sufficient_support_n  stable_n  max_abs_delta_NDVI  max_fraction_threshold_delta_NDVI  max_abs_delta_NBR  max_fraction_threshold_delta_NBR  max_abs_delta_DW_vegprob  max_fraction_threshold_delta_DW_vegprob  max_abs_delta_DW_water  max_fraction_threshold_delta_DW_water
+GEDI04_A_2024129223530_O30615_03_T00000_02_004_02_V003.h5 2024-05-08T22:35:30+00:00   3                     3         3            0.033681                           0.224543           0.062050                          0.413666                  0.121589                                 0.486354                0.026048                               0.104193
+GEDI04_A_2024176190133_O31342_02_T08867_02_004_02_V003.h5 2024-06-24T19:01:33+00:00  47                    47        47            0.093541                           0.623604           0.099835                          0.665569                  0.060559                                 0.242238                0.036602                               0.146408
+GEDI04_A_2024182015535_O31424_03_T07006_02_004_02_V003.h5 2024-06-30T01:55:35+00:00  12                    12        12            0.053332                           0.355546           0.079170                          0.527803                  0.077624                                 0.310498                0.024324                               0.097297
+GEDI04_A_2024261093130_O32654_02_T00482_02_004_02_V003.h5 2024-09-17T09:31:30+00:00 341                   341       341            0.050868                           0.339118           0.053979                          0.359861                  0.103844                                 0.415378                0.025133                               0.100531
+GEDI04_A_2024315205623_O33499_03_T10158_02_004_02_V003.h5 2024-11-10T20:56:23+00:00 446                   446       446            0.067596                           0.450637           0.072082                          0.480550                  0.071142                                 0.284568                0.059154                               0.236614
+GEDI04_A_2025008124335_O34409_02_T07444_02_004_02_V003.h5 2025-01-08T12:43:35+00:00   4                     4         4            0.050054                           0.333695           0.037773                          0.251817                  0.118127                                 0.472509                0.023707                               0.094830
+GEDI04_A_2025100002900_O35828_02_T01905_02_004_02_V003.h5 2025-04-10T00:29:00+00:00 675                   675       675            0.070159                           0.467727           0.075221                          0.501476                  0.078210                                 0.312842                0.051865                               0.207459
+GEDI04_A_2025159095805_O36749_03_T09852_02_004_02_V003.h5 2025-06-08T09:58:05+00:00 113                   113       113            0.056521                           0.376804           0.107764                          0.718426                  0.095363                                 0.381451                0.031578                               0.126313
+
+COLLECTION-COUNT METADATA CHECK
+----------------------------------------------------------------------------------------------------
+baseline_S2_collection_images: 2866341.0
+baseline_DW_collection_images: 2055193.0
+follow_S2_collection_images: 3200320.0
+follow_DW_collection_images: 2265908.0
+
+WARNING: collection-level image counts are global/unfiltered collection counts and must NOT be reported as local study-area image availability.
+Point-level baseline/follow *_count bands are the relevant optical-support quantities used for the stability classification.
+
+OVERALL QC DECISION
+----------------------------------------------------------------------------------------------------
+Required delta fields complete: True
+Optical-support fields complete: True
+All point-level support >= 3: True
+Physical ranges clean: True
+Class reproduction exact: True
+Indicator reproduction exact: True
+QC PASS: True
+
+INTERPRETATION BOUNDARY
+----------------------------------------------------------------------------------------------------
+If QC passes and no footprint exceeds the predeclared screening thresholds, the supported statement is: 'No threshold-exceeding optical/land-cover change was detected at the retained GEDI footprints under the conservative stability screen.'
+This must NOT be rewritten as 'no disturbance occurred.' The annual-composite screen may miss subtle, short-lived, sub-pixel, or spectrally ambiguous change.

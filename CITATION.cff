@@ -1,5 +1,5 @@
-cff-version: 1.2.0
-message: "Please cite the archived Zenodo release of this repository."
+﻿cff-version: 1.2.0
+message: "Please cite the archived Zenodo v1.0.2 release of this repository."
 title: "Code and Supporting Material for Early Evaluation of NISAR L-Band Sensitivity to Mangrove Aboveground Biomass Using GEDI and Spatial Machine Learning"
 type: software
 authors:
@@ -12,7 +12,9 @@ authors:
   - family-names: "Islam"
     given-names: "Sheikh Tawhidul"
     orcid: "https://orcid.org/0000-0002-9697-4306"
-version: "1.0.0"
+version: "1.0.2"
+doi: "10.5281/zenodo.23740025"
+repository-code: "https://github.com/imranahmed2014ssc-art/NISAR-GEDI-Mangrove-AGB"
 license: MIT
 keywords:
   - NISAR

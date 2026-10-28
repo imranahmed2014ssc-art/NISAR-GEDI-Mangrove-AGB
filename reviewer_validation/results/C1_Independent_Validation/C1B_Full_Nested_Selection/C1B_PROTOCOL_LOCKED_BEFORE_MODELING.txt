@@ -1,0 +1,100 @@
+==========================================================================================
+C1B FULL NESTED MODEL/PREDICTOR SELECTION PROTOCOL
+==========================================================================================
+
+THIS FILE WAS WRITTEN BEFORE ANY C1B MODEL FITTING.
+
+Frozen observations: 1641
+New outer validation geometry: C1 Step 2 frozen folds
+Outer buffer: 500 m
+Inner CV: 4-fold GroupKFold by cv_block_id
+Selection metric: inner RMSE
+Random seed: 42
+Outer test files are not opened until all inner model/predictor selection for that fold is complete.
+
+FEATURE FAMILIES
+------------------------------------------------------------------------------------------
+F01_3P (3 predictors):
+  HH_dB
+  HV_dB
+  HV_SD
+F02_3P_PLUS_3X3 (4 predictors):
+  HH_dB
+  HV_dB
+  HV_SD
+  HH_SD_dB_3x3
+F03_3P_PLUS_5X5 (8 predictors):
+  HH_dB
+  HV_dB
+  HV_SD
+  HH_MeanLin_dB_5x5
+  HV_MeanLin_dB_5x5
+  HH_SD_dB_5x5
+  HV_SD_dB_5x5
+  PolContrast_SD_dB_5x5
+F04_3P_PLUS_9X9 (8 predictors):
+  HH_dB
+  HV_dB
+  HV_SD
+  HH_MeanLin_dB_9x9
+  HV_MeanLin_dB_9x9
+  HH_SD_dB_9x9
+  HV_SD_dB_9x9
+  PolContrast_SD_dB_9x9
+F05_3P_PLUS_3X3_PLUS_5X5 (9 predictors):
+  HH_dB
+  HV_dB
+  HV_SD
+  HH_SD_dB_3x3
+  HH_MeanLin_dB_5x5
+  HV_MeanLin_dB_5x5
+  HH_SD_dB_5x5
+  HV_SD_dB_5x5
+  PolContrast_SD_dB_5x5
+F06_HISTORICAL_9P (9 predictors):
+  HH_dB
+  HV_dB
+  HV_SD
+  HH_SD_dB_3x3
+  HH_MeanLin_dB_9x9
+  HV_MeanLin_dB_9x9
+  HH_SD_dB_9x9
+  HV_SD_dB_9x9
+  PolContrast_SD_dB_9x9
+F07_FULL_14P (14 predictors):
+  HH_dB
+  HV_dB
+  HV_SD
+  HH_SD_dB_3x3
+  HH_MeanLin_dB_5x5
+  HV_MeanLin_dB_5x5
+  HH_SD_dB_5x5
+  HV_SD_dB_5x5
+  PolContrast_SD_dB_5x5
+  HH_MeanLin_dB_9x9
+  HV_MeanLin_dB_9x9
+  HH_SD_dB_9x9
+  HV_SD_dB_9x9
+  PolContrast_SD_dB_9x9
+
+MODEL FAMILIES
+------------------------------------------------------------------------------------------
+  Linear
+  RandomForest
+  XGBoost
+  SVR
+  ExtraTrees
+  MLP
+  GAM
+
+Search spaces and search iteration counts reproduce the historical Phase 7 model scripts.
+Runtime parallelism is standardized to n_jobs=1 for reviewer validation; this does not alter candidate sets, folds, seeds, or scoring.
+
+Data SHA256:
+de9fc736ec77d38dae527020b2d037c4567f3c814f874d9843da230c6bf67dc0
+
+Split-manifest SHA256:
+cffe31ff77bc2333ec3605a280bcbd7ab29d8b4593af720530fdb9a35cdf8d01
+
+C1B script SHA256:
+6a54e9ceeb5c6ef81b4097c3747e5e9c449d0130a87be200d914472cdffffe2a

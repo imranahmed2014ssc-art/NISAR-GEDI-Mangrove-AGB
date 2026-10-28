@@ -1,0 +1,58 @@
+==========================================================================================
+C1 INDEPENDENT SPATIAL VALIDATION - PRE-REGISTERED OUTER SPLITS
+==========================================================================================
+
+PURPOSE
+------------------------------------------------------------------------------------------
+Create a new selection-independent outer spatial validation geometry before any reviewer-validation model is fitted.
+
+LOCKED RULES
+------------------------------------------------------------------------------------------
+1. Frozen dataset: 1,641 observations.
+2. Spatial unit: existing 3-km cv_block_id.
+3. Number of new outer folds: 5.
+4. Split generation uses only UTM coordinates and block identity.
+5. AGBD is NOT used for fold creation or balancing.
+6. Each 3-km block belongs to exactly one new outer fold.
+7. New outer test folds are buffered by 500 m from training observations.
+8. Seed: 20261027.
+9. Split membership is frozen after creation and must not be altered based on subsequent model performance.
+
+INPUT HASH
+------------------------------------------------------------------------------------------
+de9fc736ec77d38dae527020b2d037c4567f3c814f874d9843da230c6bf67dc0  D:\NISAR_Mangrove_Paper\04_Matched_Data\Predictor_Expansion\Phase8C2\Tables\GEDI_NISAR_expanded_predictors_1641.csv
+
+SPLIT MANIFEST HASH
+------------------------------------------------------------------------------------------
+cffe31ff77bc2333ec3605a280bcbd7ab29d8b4593af720530fdb9a35cdf8d01  D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C1_Independent_Validation\C1_02_NEW_SPLIT_MANIFEST.csv
+
+NEW OUTER-FOLD SUMMARY
+------------------------------------------------------------------------------------------
+ new_outer_fold  test_n  test_blocks  candidate_train_n  buffered_train_n  removed_by_500m_buffer  buffered_train_blocks  minimum_train_test_distance_m  train_test_shot_overlap
+              1      61           12               1580              1579                       1                     42                     871.603567                        0
+              2      44            5               1597              1597                       0                     49                    2846.116013                        0
+              3     233           13               1408              1407                       1                     41                     647.758442                        0
+              4     777           14                864               832                      32                     39                     514.765940                        0
+              5     526           10               1115              1085                      30                     44                     514.699922                        0
+
+OLD VS NEW FOLD CROSS-TAB
+------------------------------------------------------------------------------------------
+new_outer_fold                 1   2   3    4    5
+original_phase6_spatial_fold                      
+1                             20   1  19  238   50
+2                              5   3  71  104  152
+3                              6   0  38  163  118
+4                              2   9  36  160  122
+5                             28  31  69  112   84
+
+INTEGRITY CHECKS
+------------------------------------------------------------------------------------------
+Total test memberships: 1641
+Unique test shots: 1641
+Test union equals frozen dataset: True
+Blocks split across folds: 0
+Any train/test shot overlap: False
+
+NO MODEL WAS FITTED DURING THIS STEP.
+THE NEW OUTER SPLITS ARE NOW FROZEN.
+==========================================================================================

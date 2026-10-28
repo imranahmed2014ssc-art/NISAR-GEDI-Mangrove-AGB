@@ -1,0 +1,76 @@
+====================================================================================================
+C4 STEP 0 - GEDI L4A AGBD UNCERTAINTY AUDIT AND PRE-MODEL STRATIFICATION
+====================================================================================================
+
+STATUS
+----------------------------------------------------------------------------------------------------
+NO MODEL WAS FITTED.
+NO EXISTING MODEL PREDICTIONS WERE USED TO DEFINE UNCERTAINTY STRATA.
+C1, C2 and C3 remain frozen.
+
+DATASET
+----------------------------------------------------------------------------------------------------
+Rows: 1641
+Unique shots: 1641
+Missing agbd_se: 0
+
+PRIMARY ABSOLUTE-SE STRATA
+----------------------------------------------------------------------------------------------------
+Lower tertile cut point: 17.492795 Mg/ha
+Upper tertile cut point: 17.496197 Mg/ha
+These cut points are frozen before examining model errors by uncertainty.
+
+GEDI_SE_stratum   n  blocks  agbd_se_min  agbd_se_median  agbd_se_max  AGBD_mean   AGBD_sd  relative_se_percent_median
+   U1_LOWEST_SE 547      38    17.486952       17.491488    17.492792  98.953793 25.631608                   18.139105
+   U2_MIDDLE_SE 547      45    17.492796       17.494017    17.496195  56.870274 18.678209                   31.512816
+  U3_HIGHEST_SE 547      43    17.496201       17.500605    17.503042   8.040176  5.381099                  277.010752
+
+AGBD_SE QUANTILES
+----------------------------------------------------------------------------------------------------
+                variable  quantile      value    n
+                 agbd_se  0.000000  17.486952 1641
+                 agbd_se  0.010000  17.489257 1641
+                 agbd_se  0.050000  17.490284 1641
+                 agbd_se  0.100000  17.490868 1641
+                 agbd_se  0.250000  17.492147 1641
+                 agbd_se  0.333333  17.492795 1641
+                 agbd_se  0.500000  17.494017 1641
+                 agbd_se  0.666667  17.496197 1641
+                 agbd_se  0.750000  17.499166 1641
+                 agbd_se  0.900000  17.501385 1641
+                 agbd_se  0.950000  17.501938 1641
+                 agbd_se  0.990000  17.502530 1641
+                 agbd_se  1.000000  17.503042 1641
+agbd_relative_se_percent  0.000000   8.491025 1641
+agbd_relative_se_percent  0.010000  11.605364 1641
+agbd_relative_se_percent  0.050000  13.931989 1641
+agbd_relative_se_percent  0.100000  15.922258 1641
+agbd_relative_se_percent  0.250000  20.300894 1641
+agbd_relative_se_percent  0.333333  23.424150 1641
+agbd_relative_se_percent  0.500000  32.162337 1641
+agbd_relative_se_percent  0.666667  78.767867 1641
+agbd_relative_se_percent  0.750000 196.643448 1641
+agbd_relative_se_percent  0.900000 335.811356 1641
+agbd_relative_se_percent  0.950000 383.950461 1641
+agbd_relative_se_percent  0.990000 476.008596 1641
+agbd_relative_se_percent  1.000000 625.730480 1641
+
+UNCERTAINTY BY BIOMASS REGIME
+----------------------------------------------------------------------------------------------------
+AGBD_regime   n  AGBD_mean  agbd_se_mean  agbd_se_median  agbd_se_q25  agbd_se_q75  agbd_se_q90  agbd_se_q95  relative_se_percent_median  relative_se_percent_q90
+        <50 748  16.011356     17.498750       17.499625    17.496007    17.501225    17.501984    17.502279                  217.987424               390.281914
+    50-<100 642  73.699809     17.492846       17.492961    17.491971    17.493721    17.494452    17.494837                   23.985072                32.344251
+      >=100 251 120.884337     17.490904       17.490906    17.490275    17.491603    17.492159    17.492427                   14.828945                17.058702
+
+AGBD / UNCERTAINTY ASSOCIATIONS
+----------------------------------------------------------------------------------------------------
+               relationship    n  Pearson_r     Pearson_p  Spearman_rho  Spearman_p
+        AGBD_vs_absolute_SE 1641  -0.902134  0.000000e+00     -0.946512         0.0
+AGBD_vs_relative_SE_percent 1641  -0.770060 2.964394e-322     -1.000000         0.0
+
+INTERPRETATION BOUNDARY
+----------------------------------------------------------------------------------------------------
+GEDI agbd_se is treated as the product-reported uncertainty associated with the GEDI AGBD estimate.
+It is not interpreted as the full error of the reference observation and does not capture every systematic, spatial-support, temporal, or representativeness error source.
+Inverse-variance weighting is NOT assumed to be automatically appropriate.
+Subsequent C4 analyses will first evaluate existing frozen OOF predictions across the predeclared uncertainty strata before any uncertainty-aware sensitivity analysis is considered.

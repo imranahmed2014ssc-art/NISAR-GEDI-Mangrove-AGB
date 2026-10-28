@@ -1,0 +1,92 @@
+================================================================================================
+C2 STEP 2B — LEAVE-ONE-COMPLETE-GEDI-PASS-OUT VALIDATION
+================================================================================================
+
+DESIGN
+------------------------------------------------------------------------------------------------
+Track-group proxy: complete GEDI L4A source_file/acquisition pass.
+All observations from one acquisition pass were withheld together.
+The held-out source file was absent from the active training data.
+A 500-m spatial exclusion buffer was additionally applied to training observations.
+Frozen model family: Extra Trees.
+Frozen predictor family: full 14P multiscale predictor set.
+Hyperparameters were retuned only inside each active training sample using
+four-fold GroupKFold grouped by 3-km cv_block_id.
+No C2 model-family or predictor-family selection occurred.
+
+INPUT SHA256
+------------------------------------------------------------------------------------------------
+de9fc736ec77d38dae527020b2d037c4567f3c814f874d9843da230c6bf67dc0
+
+POOLED LEAVE-PASS-OUT PERFORMANCE
+------------------------------------------------------------------------------------------------
+             model pass_id    n  train_n  test_n  low_power_n_lt_30  RMSE_Mg_ha  MAE_Mg_ha        R2  Bias_Mg_ha  rRMSE_percent  Pearson_r  Spearman_rho  observed_mean  predicted_mean  observed_sd  predicted_sd  pred_to_obs_SD_ratio
+ET14P_PASS_HOLDOUT  POOLED 1641      NaN    1641              False   40.382037  33.640570  0.054323   -1.090393      73.930779   0.235723      0.199752      54.621414       53.531021    41.538346     10.768151              0.259234
+         MEAN_ONLY  POOLED 1641      NaN    1641              False   42.035279  35.826286 -0.024694   -1.720788      76.957508  -0.183361     -0.180311      54.621414       52.900626    41.538346      2.265609              0.054543
+
+PER-PASS PERFORMANCE
+------------------------------------------------------------------------------------------------
+             model pass_id   n  train_n  test_n  low_power_n_lt_30  RMSE_Mg_ha  MAE_Mg_ha          R2  Bias_Mg_ha  rRMSE_percent  Pearson_r  Spearman_rho  observed_mean  predicted_mean  observed_sd  predicted_sd  pred_to_obs_SD_ratio
+ET14P_PASS_HOLDOUT PASS_01   3     1638       3               True   27.292697  25.609998 -142.412370   25.609998     301.384093   0.964437      1.000000       9.055786       34.665784     2.791250  1.422388e+01          5.095883e+00
+         MEAN_ONLY PASS_01   3     1638       3               True   45.705938  45.649082 -401.197103   45.649082     504.715322        NaN           NaN       9.055786       54.704868     2.791250  0.000000e+00          0.000000e+00
+ET14P_PASS_HOLDOUT PASS_02  47     1586      47              False   33.942395  24.960438   -0.008704    2.027922      67.121825   0.149454      0.116790      50.568344       52.596265    34.161001  1.076428e+01          3.151045e-01
+         MEAN_ONLY PASS_02  47     1586      47              False   34.065679  25.427208   -0.016045    4.280856      67.365622        NaN           NaN      50.568344       54.849200    34.161001  1.436449e-14          4.204938e-16
+ET14P_PASS_HOLDOUT PASS_03  12     1627      12               True   42.421993  30.656712    0.252184    0.348369      85.658511   0.698135      0.678322      49.524551       49.872920    51.237521  1.092408e+01          2.132046e-01
+         MEAN_ONLY PASS_03  12     1627      12               True   49.327206  37.594740   -0.011080    5.163657      99.601520        NaN           NaN      49.524551       54.688208    51.237521  0.000000e+00          0.000000e+00
+ET14P_PASS_HOLDOUT PASS_04 341     1232     341              False   40.234632  33.814450   -0.005814    4.415300      81.616324   0.174319      0.153722      49.297285       53.712585    40.177128  1.323937e+01          3.295250e-01
+         MEAN_ONLY PASS_04 341     1232     341              False   40.539439  35.450413   -0.021111    5.829087      82.234629        NaN           NaN      49.297285       55.126372    40.177128  0.000000e+00          0.000000e+00
+ET14P_PASS_HOLDOUT PASS_05 446     1013     446              False   46.072406  39.805560    0.000276  -13.226932      72.505461   0.311396      0.266498      63.543360       50.316428    46.130508  8.849725e+00          1.918410e-01
+         MEAN_ONLY PASS_05 446     1013     446              False   48.147157  42.359137   -0.091791  -13.960526      75.770556        NaN           NaN      63.543360       49.582833    46.130508  1.422681e-14          3.084036e-16
+ET14P_PASS_HOLDOUT PASS_06   4     1635       4               True   25.596435  23.280452    0.300643   -0.651033      47.950571   0.624466      0.400000      53.380875       52.729842    35.342675  1.153474e+01          3.263686e-01
+         MEAN_ONLY PASS_06   4     1635       4               True   30.632007  23.547284   -0.001592    1.221199      57.383860        NaN           NaN      53.380875       54.602074    35.342675  0.000000e+00          0.000000e+00
+ET14P_PASS_HOLDOUT PASS_07 675      893     675              False   37.942713  31.157300    0.080552   -0.122686      67.432220   0.289354      0.251014      56.267929       56.145243    39.599240  9.230927e+00          2.331087e-01
+         MEAN_ONLY PASS_07 675      893     675              False   39.691282  33.237868   -0.006145   -3.101804      70.539796        NaN           NaN      56.267929       53.166125    39.599240  7.110696e-15          1.795665e-16
+ET14P_PASS_HOLDOUT PASS_08 113     1521     113              False   33.246486  28.124046   -0.986214   22.242070     114.173453   0.193920      0.259116      29.119278       51.361349    23.695337  1.329650e+01          5.611442e-01
+         MEAN_ONLY PASS_08 113     1521     113              False   36.205596  30.949169   -1.355516   27.465341     124.335485        NaN           NaN      29.119278       56.584619    23.695337  2.141123e-14          9.036053e-16
+
+PASS-MACRO DIAGNOSTICS
+------------------------------------------------------------------------------------------------
+             model         subset  n_passes  mean_pass_RMSE  median_pass_RMSE  mean_pass_MAE  mean_pass_bias  mean_pass_R2
+ET14P_PASS_HOLDOUT   all_8_passes         8       35.843720         35.942554      29.676120        5.080376    -17.847431
+ET14P_PASS_HOLDOUT passes_n_ge_30         5       38.287726         37.942713      31.572359        3.067135     -0.183981
+         MEAN_ONLY   all_8_passes         8       40.539288         40.115361      34.276863        9.068362    -50.337548
+         MEAN_ONLY passes_n_ge_30         5       39.729831         39.691282      33.484759        4.102591     -0.298122
+
+SELECTED ET HYPERPARAMETERS
+------------------------------------------------------------------------------------------------
+pass_id                                               source_file          acquisition_date  train_n  train_blocks  test_n  test_blocks  low_power_n_lt_30  best_inner_RMSE                                                                                                              best_params_json
+PASS_01 GEDI04_A_2024129223530_O30615_03_T00000_02_004_02_V003.h5 2024-05-08T22:35:30+00:00     1638            52       3            2               True        39.819500  {"bootstrap": true, "max_depth": 8, "max_features": 0.6, "min_samples_leaf": 6, "min_samples_split": 2, "n_estimators": 700}
+PASS_02 GEDI04_A_2024176190133_O31342_02_T08867_02_004_02_V003.h5 2024-06-24T19:01:33+00:00     1586            52      47           12              False        39.926372 {"bootstrap": true, "max_depth": 8, "max_features": 0.8, "min_samples_leaf": 6, "min_samples_split": 10, "n_estimators": 700}
+PASS_03 GEDI04_A_2024182015535_O31424_03_T07006_02_004_02_V003.h5 2024-06-30T01:55:35+00:00     1627            51      12            6               True        39.831260  {"bootstrap": true, "max_depth": 8, "max_features": 0.6, "min_samples_leaf": 6, "min_samples_split": 2, "n_estimators": 700}
+PASS_04 GEDI04_A_2024261093130_O32654_02_T00482_02_004_02_V003.h5 2024-09-17T09:31:30+00:00     1232            47     341           11              False        38.968501 {"bootstrap": false, "max_depth": 8, "max_features": 0.8, "min_samples_leaf": 6, "min_samples_split": 5, "n_estimators": 700}
+PASS_05 GEDI04_A_2024315205623_O33499_03_T10158_02_004_02_V003.h5 2024-11-10T20:56:23+00:00     1013            48     446           13              False        37.443748 {"bootstrap": true, "max_depth": 8, "max_features": 0.8, "min_samples_leaf": 6, "min_samples_split": 10, "n_estimators": 700}
+PASS_06 GEDI04_A_2025008124335_O34409_02_T07444_02_004_02_V003.h5 2025-01-08T12:43:35+00:00     1635            52       4            4               True        39.903174 {"bootstrap": false, "max_depth": 8, "max_features": 0.8, "min_samples_leaf": 6, "min_samples_split": 5, "n_estimators": 700}
+PASS_07 GEDI04_A_2025100002900_O35828_02_T01905_02_004_02_V003.h5 2025-04-10T00:29:00+00:00      893            47     675           20              False        41.316901  {"bootstrap": true, "max_depth": 8, "max_features": 0.6, "min_samples_leaf": 6, "min_samples_split": 2, "n_estimators": 700}
+PASS_08 GEDI04_A_2025159095805_O36749_03_T09852_02_004_02_V003.h5 2025-06-08T09:58:05+00:00     1521            46     113           14              False        40.502868 {"bootstrap": true, "max_depth": 8, "max_features": 0.8, "min_samples_leaf": 6, "min_samples_split": 10, "n_estimators": 700}
+
+8-PASS CLUSTER BOOTSTRAP
+------------------------------------------------------------------------------------------------
+                     metric      mean    median    CI_2.5   CI_97.5  n_replicates  nominal_pass_units
+                 model_RMSE 40.191381 40.212149 35.267115 44.549811          5000                   8
+                  model_MAE 33.498736 33.495518 28.195444 37.981548          5000                   8
+                   model_R2  0.036442  0.047680 -0.085506  0.085003          5000                   8
+delta_RMSE_model_minus_mean -1.681259 -1.678768 -2.495321 -0.798573          5000                   8
+ delta_MAE_model_minus_mean -2.213140 -2.190042 -2.752489 -1.789643          5000                   8
+  delta_R2_model_minus_mean  0.083368  0.080579  0.041099  0.128769          5000                   8
+
+IMPORTANT UNCERTAINTY NOTE
+------------------------------------------------------------------------------------------------
+Only eight nominal acquisition-pass units exist, and pass sizes are highly unequal.
+Therefore the pass-level bootstrap is a diagnostic uncertainty analysis rather than
+evidence of broad external transferability. Individual pass results with n < 30 are
+explicitly flagged as low-power and must not be interpreted in isolation.
+
+REFERENCE TO C1B CONTIGUOUS-GEOGRAPHIC VALIDATION
+------------------------------------------------------------------------------------------------
+C1B contiguous-geographic 500-m pooled RMSE: 40.995837 Mg/ha
+Difference in pooled RMSE (pass-holdout minus C1B): -0.613800 Mg/ha
+
+INTERPRETATION BOUNDARY
+------------------------------------------------------------------------------------------------
+This is a within-study leave-acquisition-pass-out transferability test.
+It does not constitute external-site validation.

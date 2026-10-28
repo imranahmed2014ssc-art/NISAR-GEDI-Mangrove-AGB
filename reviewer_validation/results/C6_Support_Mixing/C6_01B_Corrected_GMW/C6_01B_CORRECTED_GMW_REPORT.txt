@@ -1,0 +1,67 @@
+============================================================================================================
+C6 STEP 1B - CORRECTED RAW-BINARY GMW SUPPORT OCCUPANCY
+============================================================================================================
+
+STATUS
+------------------------------------------------------------------------------------------------------------
+NO MODEL WAS FITTED.
+NO SUPPORT THRESHOLD WAS CHANGED.
+This step supersedes ONLY the GMW fraction calculation from C6 Step 1.
+The C6 Step 1 GCOV mask / exception / numberOfLooks results remain valid.
+C1-C5 remain frozen.
+
+WHY CORRECTION WAS REQUIRED
+------------------------------------------------------------------------------------------------------------
+GeoTIFF NoData tag = 0.0.
+Rasterio masked arrays therefore excluded raw zero/background cells from the original fraction denominator.
+Corrected support fractions use all raw binary 0/1 cells within each complete support window.
+
+GRID
+------------------------------------------------------------------------------------------------------------
+CRS: EPSG:32645
+Resolution: 10.000 x 10.000 m
+Raw raster values: [0, 1]
+
+CENTER-PIXEL CONSISTENCY
+------------------------------------------------------------------------------------------------------------
+Raw GMW center matches master center_mangrove: 1641/1641
+
+CORRECTED SUPPORT DISTRIBUTIONS
+------------------------------------------------------------------------------------------------------------
+support  nominal_width_m  minimum      q01      q05  q25  median  q75  q95  maximum  n_fraction_1
+    3x3               30 0.666667 1.000000 1.000000  1.0     1.0  1.0  1.0      1.0          1634
+    5x5               50 0.600000 0.840000 1.000000  1.0     1.0  1.0  1.0      1.0          1606
+    9x9               90 0.555556 0.740741 0.975309  1.0     1.0  1.0  1.0      1.0          1556
+
+FROZEN 90-M THRESHOLD COUNTS
+------------------------------------------------------------------------------------------------------------
+ threshold  interior_n  interior_percent  edge_mixed_n  edge_mixed_percent
+      1.00        1556         94.820232            85            5.179768
+      0.95        1574         95.917124            67            4.082876
+      0.90        1586         96.648385            55            3.351615
+      0.75        1622         98.842169            19            1.157831
+
+PRIMARY 95% CLASS
+------------------------------------------------------------------------------------------------------------
+      class    n   percent
+INTERIOR_95 1574 95.917124
+ EDGE_MIXED   67  4.082876
+
+MASTER MANGROVE_FRACTION COMPARISON
+------------------------------------------------------------------------------------------------------------
+support    n  mean_abs_difference  max_abs_difference  pearson_correlation
+    3x3 1641             0.000765            0.242554             0.900813
+    5x5 1641             0.002685            0.320000             0.712487
+    9x9 1641             0.007985            0.444444             0.455958
+
+GCOV QC STATUS RETAINED FROM STEP 1
+------------------------------------------------------------------------------------------------------------
+3x3: 1641/1641 QC-clean (100.000%)
+5x5: 1641/1641 QC-clean (100.000%)
+9x9: 1641/1641 QC-clean (100.000%)
+
+INTERPRETATION BOUNDARY
+------------------------------------------------------------------------------------------------------------
+These fractions characterize binary GMW occupancy within the nominal NISAR predictor support windows.
+They do not imply that non-mangrove cells are necessarily open water; background may include water or other non-GMW cover.
+No causal relationship with biomass-model error is inferred in this step.

@@ -1,0 +1,22 @@
+{
+  "label": "CURRENT AUDIT ENVIRONMENT - not automatically assumed to be the exact historical modeling environment",
+  "python": "3.14.4 (tags/v3.14.4:23116f9, Apr  7 2026, 14:10:54) [MSC v.1944 64 bit (AMD64)]",
+  "python_executable": "C:\\Users\\Lenovo\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "packages": {
+    "geopandas": "1.2.0",
+    "h5py": "3.16.0",
+    "joblib": "1.6.0",
+    "matplotlib": "3.11.2",
+    "numpy": "2.5.3",
+    "pandas": "3.0.6",
+    "pyogrio": "0.13.0",
+    "pyproj": "3.8.0",
+    "rasterio": "1.5.0",
+    "scipy": "1.17.1",
+    "shapely": "2.1.2",
+    "sklearn": "1.9.1",
+    "statsmodels": "0.15.0",
+    "xgboost": "3.4.1"
+  }
+}

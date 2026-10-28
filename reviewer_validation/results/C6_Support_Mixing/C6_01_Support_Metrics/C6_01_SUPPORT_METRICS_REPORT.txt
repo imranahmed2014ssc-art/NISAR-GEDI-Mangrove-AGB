@@ -1,0 +1,104 @@
+============================================================================================================
+C6 STEP 1 - FROZEN SUPPORT / EDGE-MIXING METRIC EXTRACTION
+============================================================================================================
+
+STATUS
+------------------------------------------------------------------------------------------------------------
+NO AGBD MODEL WAS FITTED.
+NO MODEL ERROR OR PERFORMANCE RESULT WAS USED TO DEFINE SUPPORT CLASSES.
+C1-C5 remain frozen.
+
+INPUT INTEGRITY
+------------------------------------------------------------------------------------------------------------
+Master rows: 1641
+Unique shots: 1641
+Master SHA256: de9fc736ec77d38dae527020b2d037c4567f3c814f874d9843da230c6bf67dc0
+
+GRID GEOMETRY
+------------------------------------------------------------------------------------------------------------
+NISAR Frequency-A projection: EPSG:32645
+NISAR grid spacing: 10.000 m x 10.000 m
+GMW raster projection: EPSG:32645
+GMW raster resolution: 10.000 m x 10.000 m
+
+3x3 nominal support width = 30 m
+5x5 nominal support width = 50 m
+9x9 nominal support width = 90 m
+
+FROZEN PRIMARY EDGE DEFINITION
+------------------------------------------------------------------------------------------------------------
+Primary 90-m interior support: 9x9 GMW mangrove fraction >= 0.95.
+Primary edge/mixed support: 9x9 GMW mangrove fraction < 0.95.
+Sensitivity thresholds: 1.00, 0.95, 0.90, 0.75.
+These are support-screening thresholds, not ecological disturbance thresholds.
+
+FROZEN GCOV QC-CLEAN DEFINITION
+------------------------------------------------------------------------------------------------------------
+For each support window, QC_CLEAN requires:
+1) GCOV mask valid fraction = 1.0;
+2) inputDataExceptionMask clean fraction = 1.0;
+3) finite positive numberOfLooks fraction = 1.0.
+
+GMW VALUE INVENTORY
+------------------------------------------------------------------------------------------------------------
+Unique valid raster values: [1]
+
+SUPPORT METRIC DISTRIBUTIONS
+------------------------------------------------------------------------------------------------------------
+                    variable  n_valid  n_missing      min      q05      q25   median      q75      q95      max
+   gmw_mangrove_fraction_3x3     1641          0 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000
+      gmw_valid_fraction_3x3     1641          0 0.666667 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000
+     gcov_valid_fraction_3x3     1641          0 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000
+exception_clean_fraction_3x3     1641          0 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000
+ positive_looks_fraction_3x3     1641          0 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000
+      numberOfLooks_mean_3x3     1641          0 3.093329 3.982606 4.207043 4.323145 4.435072 4.622321 5.301837
+       numberOfLooks_min_3x3     1641          0 2.088041 3.805316 4.068436 4.208750 4.314889 4.489517 4.898392
+       numberOfLooks_max_3x3     1641          0 3.576969 4.145631 4.325425 4.436563 4.575593 4.788522 5.815204
+   gmw_mangrove_fraction_5x5     1641          0 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000
+      gmw_valid_fraction_5x5     1641          0 0.600000 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000
+     gcov_valid_fraction_5x5     1641          0 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000
+exception_clean_fraction_5x5     1641          0 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000
+ positive_looks_fraction_5x5     1641          0 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000
+      numberOfLooks_mean_5x5     1641          0 3.368621 4.049571 4.228167 4.321117 4.419024 4.568977 5.166842
+       numberOfLooks_min_5x5     1641          0 2.088041 3.717833 3.985983 4.119258 4.218073 4.348701 4.575524
+       numberOfLooks_max_5x5     1641          0 3.982879 4.286751 4.424062 4.529189 4.661077 4.875046 5.897466
+   gmw_mangrove_fraction_9x9     1641          0 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000
+      gmw_valid_fraction_9x9     1641          0 0.555556 0.975309 1.000000 1.000000 1.000000 1.000000 1.000000
+     gcov_valid_fraction_9x9     1641          0 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000
+exception_clean_fraction_9x9     1641          0 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000
+ positive_looks_fraction_9x9     1641          0 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000
+      numberOfLooks_mean_9x9     1641          0 3.656685 4.114147 4.255207 4.324081 4.387743 4.505305 4.777644
+       numberOfLooks_min_9x9     1641          0 2.088041 3.579589 3.861855 3.992647 4.100313 4.212291 4.450517
+       numberOfLooks_max_9x9     1641          0 4.206556 4.405430 4.537928 4.652790 4.779045 4.987362 5.986565
+
+90-M INTERIOR THRESHOLD COUNTS
+------------------------------------------------------------------------------------------------------------
+ threshold  interior_n  interior_percent  edge_mixed_n  edge_mixed_percent
+      1.00        1641             100.0             0                 0.0
+      0.95        1641             100.0             0                 0.0
+      0.90        1641             100.0             0                 0.0
+      0.75        1641             100.0             0                 0.0
+
+PRIMARY 90-M SUPPORT CLASS
+------------------------------------------------------------------------------------------------------------
+      class    n
+INTERIOR_95 1641
+
+QC-CLEAN COUNTS
+------------------------------------------------------------------------------------------------------------
+3x3: 1641/1641 (100.000%)
+5x5: 1641/1641 (100.000%)
+9x9: 1641/1641 (100.000%)
+
+MASTER-COLUMN COMPARISON
+------------------------------------------------------------------------------------------------------------
+Master mangrove_fraction vs recomputed 9x9 GMW:
+  Mean absolute difference = 0.00058138
+  Maximum absolute difference = 0.18090602
+  Pearson correlation = nan
+
+INTERPRETATION BOUNDARY
+------------------------------------------------------------------------------------------------------------
+This step characterizes predictor support, mangrove occupancy, and GCOV validity only.
+It does not establish that edge mixing causes model error.
+The next step will use already-frozen OOF predictions to test whether performance differs between interior and edge/mixed support without refitting or reselecting a model.

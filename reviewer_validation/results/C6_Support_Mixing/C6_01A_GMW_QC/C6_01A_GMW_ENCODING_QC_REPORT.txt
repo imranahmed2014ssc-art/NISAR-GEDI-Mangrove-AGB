@@ -1,0 +1,51 @@
+====================================================================================================
+C6 STEP 1A - GMW RASTER ENCODING / DENOMINATOR QC
+====================================================================================================
+
+STATUS
+----------------------------------------------------------------------------------------------------
+NO MODEL WAS FITTED.
+NO C6 SUPPORT THRESHOLD WAS CHANGED.
+Existing C6 Step 1 outputs were audited read-only.
+
+RASTER METADATA
+----------------------------------------------------------------------------------------------------
+Raster: D:\NISAR_Mangrove_Paper\01_AOI\Mangrove_Mask\Processed\GMW_2025_NISAR_grid_mask.tif
+NoData value: 0.0
+NoData is zero: True
+Zero present in raw raster: True
+Zero present among valid pixels: False
+
+RAW RASTER VALUE INVENTORY
+----------------------------------------------------------------------------------------------------
+ value   count  percent_all_pixels
+     0 1149647           18.612777
+     1 5027008           81.387223
+
+VALID/UNMASKED VALUE INVENTORY
+----------------------------------------------------------------------------------------------------
+ value   count  percent_valid_pixels
+     1 5027008                 100.0
+
+SUPPORT-WINDOW VALIDITY
+----------------------------------------------------------------------------------------------------
+support  valid_fraction_min  valid_fraction_q05  valid_fraction_median  valid_fraction_q95  valid_fraction_max  n_valid_fraction_lt_1  mangrove_fraction_min  mangrove_fraction_median  mangrove_fraction_max
+    3x3            0.666667            1.000000                    1.0                 1.0                 1.0                      7                    1.0                       1.0                    1.0
+    5x5            0.600000            1.000000                    1.0                 1.0                 1.0                     35                    1.0                       1.0                    1.0
+    9x9            0.555556            0.975309                    1.0                 1.0                 1.0                     85                    1.0                       1.0                    1.0
+
+MASTER VS RECOMPUTED 9X9 FRACTION
+----------------------------------------------------------------------------------------------------
+master_min: 0.8190939839416249
+master_median: 0.9999999999999992
+master_max: 1.0000000000006015
+recomputed_min: 1.0
+recomputed_median: 1.0
+recomputed_max: 1.0
+mean_abs_difference: 0.0005813785952800097
+max_abs_difference: 0.18090601605837509
+
+QC INTERPRETATION
+----------------------------------------------------------------------------------------------------
+IMPORTANT: raster value 0 is configured as NoData. A masked-array denominator would therefore exclude those cells.
+The C6 Step 1 mangrove fractions must NOT be frozen until the intended binary-mask semantics are reconstructed.

@@ -1,0 +1,14 @@
+path,filename,suffix,size_bytes
+D:\NISAR_Mangrove_Paper\01_AOI\Mangrove_Mask\gmw_v4112_2025_mng_ext_cntry_info_vec.gpkg.gz,gmw_v4112_2025_mng_ext_cntry_info_vec.gpkg.gz,.gz,189517714
+D:\NISAR_Mangrove_Paper\01_AOI\Mangrove_Mask\gmw_v4112_2025_mng_ext_cntry_info_vecc.gpkg,gmw_v4112_2025_mng_ext_cntry_info_vecc.gpkg,.gpkg,956911616
+D:\NISAR_Mangrove_Paper\01_AOI\Mangrove_Mask\Phase2_Mangrove_Mask.zip,Phase2_Mangrove_Mask.zip,.zip,5497
+D:\NISAR_Mangrove_Paper\01_AOI\Mangrove_Mask\process_mangrove_mask_phase2.py,process_mangrove_mask_phase2.py,.py,11592
+D:\NISAR_Mangrove_Paper\01_AOI\Mangrove_Mask\START_PHASE2_MANGROVE_MASK.bat,START_PHASE2_MANGROVE_MASK.bat,.bat,692
+D:\NISAR_Mangrove_Paper\01_AOI\Mangrove_Mask\gmw_v4112_2025_mng_ext_cntry_info_vec.gpkg\gmw_v4112_2025_mng_ext_cntry_info_vecc.gpkg,gmw_v4112_2025_mng_ext_cntry_info_vecc.gpkg,.gpkg,956911616
+D:\NISAR_Mangrove_Paper\01_AOI\Mangrove_Mask\Processed\GMW_2025_AOI_features_WGS84.gpkg,GMW_2025_AOI_features_WGS84.gpkg,.gpkg,385024
+D:\NISAR_Mangrove_Paper\01_AOI\Mangrove_Mask\Processed\GMW_2025_Chandpai_Sarankhola_EPSG32645.gpkg,GMW_2025_Chandpai_Sarankhola_EPSG32645.gpkg,.gpkg,364544
+D:\NISAR_Mangrove_Paper\01_AOI\Mangrove_Mask\Processed\GMW_2025_Chandpai_Sarankhola_WGS84.gpkg,GMW_2025_Chandpai_Sarankhola_WGS84.gpkg,.gpkg,364544
+D:\NISAR_Mangrove_Paper\01_AOI\Mangrove_Mask\Processed\GMW_2025_NISAR_grid_mask.tif,GMW_2025_NISAR_grid_mask.tif,.tif,52234
+D:\NISAR_Mangrove_Paper\01_AOI\Mangrove_Mask\QC\GMW_2025_mask_QC.pdf,GMW_2025_mask_QC.pdf,.pdf,84268
+D:\NISAR_Mangrove_Paper\01_AOI\Mangrove_Mask\QC\GMW_2025_mask_QC.png,GMW_2025_mask_QC.png,.png,365071
+D:\NISAR_Mangrove_Paper\01_AOI\Mangrove_Mask\QC\GMW_2025_mask_QC_summary.txt,GMW_2025_mask_QC_summary.txt,.txt,633

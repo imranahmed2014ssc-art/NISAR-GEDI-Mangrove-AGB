@@ -1,0 +1,84 @@
+====================================================================================================
+C4 STEP 1 - FROZEN C1B OOF PERFORMANCE VERSUS GEDI AGBD_SE
+====================================================================================================
+
+STATUS
+----------------------------------------------------------------------------------------------------
+NO MODEL WAS FITTED.
+NO MODEL OR PREDICTOR FAMILY WAS RESELECTED.
+Existing frozen C1B selection-aware OOF predictions were used.
+C1, C2, C3 and C4 Step 0 remain frozen.
+
+INTEGRITY
+----------------------------------------------------------------------------------------------------
+Rows: 1641
+Unique shots: 1641
+Unique spatial blocks: 54
+Maximum observed-AGBD merge difference: 0
+
+IMPORTANT INTERPRETATION CONSTRAINT
+----------------------------------------------------------------------------------------------------
+GEDI agbd_se varies over a very narrow absolute range and is strongly associated with AGBD.
+Therefore U1/U2/U3 comparisons are descriptive and must NOT be interpreted as an independent causal effect of GEDI reference uncertainty.
+Relative SE is additionally denominator-coupled to AGBD and is not treated as an independent reference-quality measure.
+
+FROZEN OOF PERFORMANCE BY ABSOLUTE-SE STRATUM
+----------------------------------------------------------------------------------------------------
+        group    n  blocks  observed_mean  observed_sd  agbd_se_mean  agbd_se_median      RMSE       MAE       bias         R2  Pearson_r  Spearman_rho  predicted_to_observed_SD_ratio  rRMSE_percent  median_abs_error_over_agbd_se  pct_abs_error_le_1SE  pct_abs_error_le_2SE
+          ALL 1641      54      54.621414    41.538346     17.495240       17.494017 40.995837 34.280155  -1.938920   0.025356   0.181909      0.135451                        0.256436      75.054514                       1.878427             28.275442             53.686776
+ U1_LOWEST_SE  547      38      98.953793    25.631608     17.491338       17.491488 51.981267 44.942622 -44.424560  -3.120375  -0.026661     -0.016146                        0.307435      52.530849                       2.390167             14.625229             39.488117
+ U2_MIDDLE_SE  547      45      56.870274    18.678209     17.494173       17.494017 19.859314 15.971893  -3.265616  -0.132538   0.190956      0.154241                        0.562948      34.920377                       0.773766             62.888483             91.773309
+U3_HIGHEST_SE  547      43       8.040176     5.381099     17.500210       17.500605 44.108178 41.925949  41.873415 -66.311771  -0.054611     -0.077813                        2.322564     548.597197                       2.557951              7.312614             29.798903
+
+FROZEN OOF PERFORMANCE BY AGBD REGIME
+----------------------------------------------------------------------------------------------------
+  group   n  blocks  observed_mean  observed_sd  agbd_se_mean  agbd_se_median      RMSE       MAE       bias         R2  Pearson_r  Spearman_rho  predicted_to_observed_SD_ratio  rRMSE_percent  median_abs_error_over_agbd_se  pct_abs_error_le_1SE  pct_abs_error_le_2SE
+    <50 748      45      16.011356    14.730996     17.498750       17.499625 39.008839 34.979748  34.231831  -6.021709   0.053822      0.003518                        0.839537     243.632322                       2.102883             21.657754             47.058824
+50-<100 642      46      73.699809    14.301864     17.492846       17.492961 25.267670 20.980198 -18.952621  -2.126238  -0.008172     -0.043869                        0.598004      34.284580                       1.083411             47.040498             81.931464
+  >=100 251      25     120.884337    18.511099     17.490904       17.490906 69.427047 66.213528 -66.213528 -13.122992  -0.092111     -0.114757                        0.442331      57.432624                       3.498775              0.000000              1.195219
+
+ERROR / AGBD_SE ASSOCIATIONS
+----------------------------------------------------------------------------------------------------
+      subset             x              y    n  Pearson_r     Pearson_p  Spearman_rho   Spearman_p
+         ALL       agbd_se absolute_error 1641   0.033648  1.730717e-01     -0.024477 3.217222e-01
+         ALL       agbd_se  squared_error 1641  -0.088172  3.488613e-04     -0.024477 3.217222e-01
+    AGBD_<50       agbd_se absolute_error  748   0.676127 4.686189e-101      0.618145 4.842971e-80
+    AGBD_<50       agbd_se  squared_error  748   0.630567  3.613414e-84      0.618145 4.842971e-80
+AGBD_50-<100       agbd_se absolute_error  642  -0.515996  5.743124e-45     -0.535964 5.084677e-49
+AGBD_50-<100       agbd_se  squared_error  642  -0.463642  1.565658e-35     -0.535964 5.084677e-49
+  AGBD_>=100       agbd_se absolute_error  251  -0.318106  2.619444e-07     -0.254187 4.619558e-05
+  AGBD_>=100       agbd_se  squared_error  251  -0.306041  7.672015e-07     -0.254187 4.619558e-05
+         ALL observed_agbd absolute_error 1641   0.263188  2.102137e-27      0.082689 7.998495e-04
+         ALL observed_agbd  squared_error 1641   0.380466  1.151113e-57      0.082689 7.998495e-04
+
+ERROR MAGNITUDE RELATIVE TO GEDI AGBD_SE
+----------------------------------------------------------------------------------------------------
+   n  median_abs_error_over_SE  q75_abs_error_over_SE  q90_abs_error_over_SE  q95_abs_error_over_SE  pct_abs_error_le_1SE  pct_abs_error_le_2SE  pct_abs_error_le_3SE
+1641                  1.878427               2.840225               3.445476               3.995872             28.275442             53.686776             80.012188
+
+INVERSE-VARIANCE EVALUATION SENSITIVITY
+----------------------------------------------------------------------------------------------------
+ agbd_se_min  agbd_se_max  agbd_se_total_range  normalized_weight_min  normalized_weight_max  max_to_min_weight_ratio  unweighted_RMSE  inverse_variance_weighted_RMSE  weighted_minus_unweighted_RMSE  unweighted_MAE  inverse_variance_weighted_MAE  weighted_minus_unweighted_MAE
+   17.486952    17.503042              0.01609               0.999109               1.000948                 1.001841        40.995837                       40.996855                        0.001018       34.280155                      34.279819                      -0.000336
+
+BLOCK-BOOTSTRAP 95% INTERVALS
+----------------------------------------------------------------------------------------------------
+        group metric  bootstrap_reps   estimate     CI_2.5    CI_97.5
+ U1_LOWEST_SE   RMSE            2000  51.981267  47.808805  55.164365
+ U1_LOWEST_SE    MAE            2000  44.942622  40.338341  48.160943
+ U1_LOWEST_SE   bias            2000 -44.424560 -47.749601 -39.681677
+ U1_LOWEST_SE     R2            2000  -3.120375  -3.733498  -2.434117
+ U2_MIDDLE_SE   RMSE            2000  19.859314  17.796773  21.931092
+ U2_MIDDLE_SE    MAE            2000  15.971893  14.308844  17.776719
+ U2_MIDDLE_SE   bias            2000  -3.265616  -6.844354   0.475235
+ U2_MIDDLE_SE     R2            2000  -0.132538  -0.308594  -0.007285
+U3_HIGHEST_SE   RMSE            2000  44.108178  42.580649  45.731142
+U3_HIGHEST_SE    MAE            2000  41.925949  40.371099  43.585191
+U3_HIGHEST_SE   bias            2000  41.873415  40.359265  43.522795
+U3_HIGHEST_SE     R2            2000 -66.311771 -97.105693 -45.611875
+
+INTERPRETATION BOUNDARY
+----------------------------------------------------------------------------------------------------
+GEDI agbd_se represents product-reported uncertainty and does not contain all reference, representativeness, temporal, or spatial-support error sources.
+Differences in model error across agbd_se strata cannot be attributed solely to GEDI uncertainty because agbd_se is strongly confounded with observed biomass.
+Inverse-variance weighted evaluation is reported only as a sensitivity diagnostic; no weighted model has been fitted in this step.

@@ -1,0 +1,47 @@
+====================================================================================================
+C3 STEP 3A - HYDROMETEOROLOGICAL SCENE-CONDITION AUDIT
+====================================================================================================
+
+STATUS
+----------------------------------------------------------------------------------------------------
+NO AGBD MODEL WAS FITTED.
+C1 and C2 remain frozen.
+C3 temporal-gap strata remain frozen.
+Hydrometeorological variables are used only to characterize the two NISAR scenes.
+
+STUDY GEOMETRY
+----------------------------------------------------------------------------------------------------
+Convex hull of the 1,641 frozen GEDI footprint coordinates.
+This geometry is used only because CHIRPS and ERA5-Land are coarse-resolution environmental datasets.
+
+DATASETS
+----------------------------------------------------------------------------------------------------
+CHIRPS Daily: UCSB-CHG/CHIRPS/DAILY
+ERA5-Land Hourly: ECMWF/ERA5_LAND/HOURLY
+
+SCENE CONDITIONS
+----------------------------------------------------------------------------------------------------
+      scene  nisar_datetime_utc  CHIRPS_precip_7d_mm  CHIRPS_precip_30d_mm  ERA5_soil_water_layer1_24h_mean  ERA5_soil_water_layer1_7d_mean  ERA5_precip_7d_mm  ERA5_precip_30d_mm  ERA5_surface_runoff_7d_mm  ERA5_surface_runoff_30d_mm  ERA5_temperature_2m_24h_C
+June25_2026 2026-06-25T23:29:21           126.303675            437.751572                         0.458151                        0.457074          89.698089          292.466960                   5.833223                   26.116826                  28.381282
+ Sep17_2026 2026-09-17T23:29:17             6.464910            224.261054                         0.403197                        0.435414          28.948326          303.583372                   1.764011                   21.577955                  29.181368
+
+JUNE MINUS SEPTEMBER
+----------------------------------------------------------------------------------------------------
+                       variable     June25      Sep17  June_minus_Sep  percent_difference_relative_to_Sep
+            CHIRPS_precip_7d_mm 126.303675   6.464910      119.838765                         1853.680288
+           CHIRPS_precip_30d_mm 437.751572 224.261054      213.490518                           95.197322
+ERA5_soil_water_layer1_24h_mean   0.458151   0.403197        0.054954                           13.629592
+ ERA5_soil_water_layer1_7d_mean   0.457074   0.435414        0.021660                            4.974559
+              ERA5_precip_7d_mm  89.698089  28.948326       60.749763                          209.855876
+             ERA5_precip_30d_mm 292.466960 303.583372      -11.116412                           -3.661733
+      ERA5_surface_runoff_7d_mm   5.833223   1.764011        4.069212                          230.679583
+     ERA5_surface_runoff_30d_mm  26.116826  21.577955        4.538871                           21.034758
+      ERA5_temperature_2m_24h_C  28.381282  29.181368       -0.800086                           -2.741770
+
+INTERPRETATION BOUNDARY
+----------------------------------------------------------------------------------------------------
+These variables characterize broad hydrometeorological scene conditions.
+They do not provide a local tidal-stage measurement at individual GEDI footprints.
+Therefore tide remains an unresolved scene-level confounder unless a reliable independent tide record or tide model is added.
+Because only two NISAR scenes are available, differences in rainfall, soil moisture, runoff, temperature, acquisition season, and radar response cannot be causally separated.
+This analysis is intended to document environmental differences between the June and September sensitivity scenes, not to claim hydrological causation of model error.

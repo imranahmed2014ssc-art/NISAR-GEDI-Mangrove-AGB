@@ -1,0 +1,13 @@
+family,role,n_predictors,predictors,purpose
+A00_COORD_ONLY,spatial_diagnostic,2,utm_x;utm_y,Tests whether geographic location alone carries apparent predictive skill.
+A01_HV9_MEAN_ONLY,radar_ablation,1,HV_MeanLin_dB_9x9,Tests whether contextual HV alone carries most of the multiscale signal.
+A02_HH_HV9_MEANS,radar_ablation,2,HH_MeanLin_dB_9x9;HV_MeanLin_dB_9x9,Tests dual-polarization 9x9 contextual means without local predictors.
+A03_3P_BASE,reference_ablation,3,HH_dB;HV_dB;HV_SD,Frozen historical three-predictor baseline.
+A04_3P_PLUS_HV9_MEAN,radar_ablation,4,HH_dB;HV_dB;HV_SD;HV_MeanLin_dB_9x9,Tests incremental value of contextual HV mean alone.
+A05_3P_PLUS_9X9_MEANS,radar_ablation,5,HH_dB;HV_dB;HV_SD;HH_MeanLin_dB_9x9;HV_MeanLin_dB_9x9,Tests contextual means separately from contextual heterogeneity.
+A06_3P_PLUS_9X9_HETEROGENEITY,radar_ablation,6,HH_dB;HV_dB;HV_SD;HH_SD_dB_9x9;HV_SD_dB_9x9;PolContrast_SD_dB_9x9,Tests whether contextual heterogeneity rather than contextual mean drives the gain.
+A07_3P_PLUS_HH3_SD,support_ablation,4,HH_dB;HV_dB;HV_SD;HH_SD_dB_3x3,Tests the incremental local 3x3 HH heterogeneity term.
+A08_3P_PLUS_5X5_CONTEXT,support_ablation,8,HH_dB;HV_dB;HV_SD;HH_MeanLin_dB_5x5;HV_MeanLin_dB_5x5;HH_SD_dB_5x5;HV_SD_dB_5x5;PolContrast_SD_dB_5x5,Eight-predictor 5x5 contextual model for matched support-size comparison.
+A09_3P_PLUS_9X9_CONTEXT,support_ablation,8,HH_dB;HV_dB;HV_SD;HH_MeanLin_dB_9x9;HV_MeanLin_dB_9x9;HH_SD_dB_9x9;HV_SD_dB_9x9;PolContrast_SD_dB_9x9,Eight-predictor 9x9 contextual model directly comparable with A08.
+A10_HISTORICAL_9P,historical_reference,9,HH_dB;HV_dB;HV_SD;HH_SD_dB_3x3;HH_MeanLin_dB_9x9;HV_MeanLin_dB_9x9;HH_SD_dB_9x9;HV_SD_dB_9x9;PolContrast_SD_dB_9x9,Exact previously locked historical 9P predictor family.
+A11_FULL_14P,c1b_reference,14,HH_dB;HV_dB;HV_SD;HH_SD_dB_3x3;HH_MeanLin_dB_5x5;HV_MeanLin_dB_5x5;HH_SD_dB_5x5;HV_SD_dB_5x5;PolContrast_SD_dB_5x5;HH_MeanLin_dB_9x9;HV_MeanLin_dB_9x9;HH_SD_dB_9x9;HV_SD_dB_9x9;PolContrast_SD_dB_9x9,Exact C1B Full14P family selected in all five C1B outer folds.

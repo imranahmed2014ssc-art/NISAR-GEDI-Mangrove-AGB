@@ -1,0 +1,72 @@
+====================================================================================================
+C3 STEP 3B - SENTINEL-2 / DYNAMIC WORLD DISTURBANCE-STABILITY SCREEN
+====================================================================================================
+
+STATUS
+----------------------------------------------------------------------------------------------------
+NO AGBD MODEL WAS FITTED.
+AGBD and model performance were not used to define stability classes.
+C1 and C2 remain frozen.
+C3 temporal-gap strata and previous C3 results remain frozen.
+
+DESIGN
+----------------------------------------------------------------------------------------------------
+Each GEDI observation was screened using a 15-m-radius footprint buffer.
+Baseline optical conditions were represented by the trailing 365 days ending at the GEDI acquisition date of its source-file pass.
+Follow-up conditions were represented by the trailing 365 days ending at the Sep-17-2026 primary NISAR acquisition.
+Sentinel-2 SR Harmonized supplied median NDVI and NBR.
+Dynamic World supplied mean tree, flooded vegetation, and water probabilities.
+tree + flooded_vegetation probability was used as a combined mangrove-relevant vegetation probability.
+
+FROZEN SCREENING THRESHOLDS
+----------------------------------------------------------------------------------------------------
+|delta NDVI| >= 0.15
+|delta NBR| >= 0.15
+|delta Dynamic World (trees + flooded vegetation)| >= 0.25
+|delta Dynamic World water| >= 0.25
+Minimum valid optical observations per window = 3
+
+These are conservative study-specific screening cut-offs, not independently validated ecological disturbance thresholds.
+
+CLASSIFICATION RULE
+----------------------------------------------------------------------------------------------------
+0 indicators: STABLE_SCREEN
+1 indicator: SINGLE_INDICATOR_CHANGE
+2-4 indicators: MULTI_INDICATOR_POTENTIAL_CHANGE
+Insufficient observation support: INSUFFICIENT_DATA
+
+OVERALL RESULT
+----------------------------------------------------------------------------------------------------
+stability_class    n  percent
+  STABLE_SCREEN 1641    100.0
+
+RESULT BY GEDI ACQUISITION PASS
+----------------------------------------------------------------------------------------------------
+                                              source_file          acquisition_date stability_class   n  pass_total  percent_within_pass
+GEDI04_A_2024129223530_O30615_03_T00000_02_004_02_V003.h5 2024-05-08T22:35:30+00:00   STABLE_SCREEN   3           3                100.0
+GEDI04_A_2024176190133_O31342_02_T08867_02_004_02_V003.h5 2024-06-24T19:01:33+00:00   STABLE_SCREEN  47          47                100.0
+GEDI04_A_2024182015535_O31424_03_T07006_02_004_02_V003.h5 2024-06-30T01:55:35+00:00   STABLE_SCREEN  12          12                100.0
+GEDI04_A_2024261093130_O32654_02_T00482_02_004_02_V003.h5 2024-09-17T09:31:30+00:00   STABLE_SCREEN 341         341                100.0
+GEDI04_A_2024315205623_O33499_03_T10158_02_004_02_V003.h5 2024-11-10T20:56:23+00:00   STABLE_SCREEN 446         446                100.0
+GEDI04_A_2025008124335_O34409_02_T07444_02_004_02_V003.h5 2025-01-08T12:43:35+00:00   STABLE_SCREEN   4           4                100.0
+GEDI04_A_2025100002900_O35828_02_T01905_02_004_02_V003.h5 2025-04-10T00:29:00+00:00   STABLE_SCREEN 675         675                100.0
+GEDI04_A_2025159095805_O36749_03_T09852_02_004_02_V003.h5 2025-06-08T09:58:05+00:00   STABLE_SCREEN 113         113                100.0
+
+COLLECTION IMAGE COUNTS BY PASS
+----------------------------------------------------------------------------------------------------
+                                              source_file     gedi_acquisition_date   n  baseline_S2_images  baseline_DW_images  follow_S2_images  follow_DW_images
+GEDI04_A_2024129223530_O30615_03_T00000_02_004_02_V003.h5 2024-05-08T22:35:30+00:00   3             2666847             1880743           3200320           2265908
+GEDI04_A_2024176190133_O31342_02_T08867_02_004_02_V003.h5 2024-06-24T19:01:33+00:00  47             2660293             1879505           3200320           2265908
+GEDI04_A_2024182015535_O31424_03_T07006_02_004_02_V003.h5 2024-06-30T01:55:35+00:00  12             2655844             1876507           3200320           2265908
+GEDI04_A_2024261093130_O32654_02_T00482_02_004_02_V003.h5 2024-09-17T09:31:30+00:00 341             2625620             1877922           3200320           2265908
+GEDI04_A_2024315205623_O33499_03_T10158_02_004_02_V003.h5 2024-11-10T20:56:23+00:00 446             2630900             1882676           3200320           2265908
+GEDI04_A_2025008124335_O34409_02_T07444_02_004_02_V003.h5 2025-01-08T12:43:35+00:00   4             2688919             1931469           3200320           2265908
+GEDI04_A_2025100002900_O35828_02_T01905_02_004_02_V003.h5 2025-04-10T00:29:00+00:00 675             2763113             1990424           3200320           2265908
+GEDI04_A_2025159095805_O36749_03_T09852_02_004_02_V003.h5 2025-06-08T09:58:05+00:00 113             2866341             2055193           3200320           2265908
+
+INTERPRETATION BOUNDARY
+----------------------------------------------------------------------------------------------------
+This is a conservative optical/LULC stability screen, not a validated disturbance map.
+Differences may reflect structural change, hydrology, phenology, atmospheric residuals, classification uncertainty, or mixed mangrove-water pixels.
+Annual composites and multiple indicators reduce but do not eliminate these confounders.
+The next C3 analysis will evaluate existing frozen OOF model performance in the STABLE_SCREEN subset without refitting or reselecting any model.

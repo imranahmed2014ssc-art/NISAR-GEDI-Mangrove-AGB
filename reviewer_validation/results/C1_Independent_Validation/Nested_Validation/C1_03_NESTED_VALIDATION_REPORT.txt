@@ -1,0 +1,54 @@
+==========================================================================================
+C1 FULLY NESTED SELECTION-INDEPENDENT VALIDATION REPORT
+==========================================================================================
+
+DESIGN
+------------------------------------------------------------------------------------------
+New geographic outer folds were frozen before this modeling run.
+Outer test observations were never used for model-family selection, predictor-set selection, or hyperparameter tuning.
+All selection occurred within the 500-m-buffered outer training data using four-fold GroupKFold grouped by 3-km cv_block_id.
+Candidate predictor sets: locked 3P and locked 9P.
+Candidate model families: Linear, Extra Trees, and MLP.
+Extra Trees search: 18 candidates from the historical Phase 8C4 search space.
+MLP search: 12 candidates from the historical Phase 8C4 search space.
+
+POOLED OUTER-TEST METRICS
+------------------------------------------------------------------------------------------
+                 model   fold    n  train_n  test_n  RMSE_Mg_ha  MAE_Mg_ha        R2  Bias_Mg_ha  rRMSE_percent  Pearson_r  Spearman_rho  observed_mean  predicted_mean  observed_sd  predicted_sd  pred_to_obs_SD_ratio
+          LOCKED_ET_3P POOLED 1641      NaN    1641   42.473944  36.148811 -0.046192   -2.717255      77.760608  -0.124703     -0.126151      54.621414       51.904159    41.538346      4.777236              0.115008
+          LOCKED_ET_9P POOLED 1641      NaN    1641   41.164360  34.443483  0.017327   -2.568682      75.363043   0.163983      0.112574      54.621414       52.052732    41.538346      9.957876              0.239727
+             MEAN_ONLY POOLED 1641      NaN    1641   42.697366  36.443352 -0.057228   -2.817237      78.169645  -0.219567     -0.229798      54.621414       51.804177    41.538346      4.069822              0.097977
+NESTED_SELECTION_AWARE POOLED 1641      NaN    1641   41.303925  34.412239  0.010652   -2.632511      75.618557   0.165126      0.124538      54.621414       51.988903    41.538346     11.520900              0.277356
+
+LOCKED ET3P VS ET9P BY OUTER FOLD
+------------------------------------------------------------------------------------------
+model  LOCKED_ET_3P  LOCKED_ET_9P  Delta_RMSE_9P_minus_3P
+fold                                                     
+1         37.488725     32.143407               -5.345318
+2         35.891543     32.875995               -3.015548
+3         39.948686     39.255086               -0.693599
+4         43.386518     41.721116               -1.665401
+5         43.241984     42.689298               -0.552687
+
+NESTED SELECTED CONFIGURATION BY FOLD
+------------------------------------------------------------------------------------------
+ outer_fold selected_model_family selected_feature_set  best_inner_RMSE                                                                                                                 best_params_json
+          1            ExtraTrees                   9P        40.329774  {"bootstrap": false, "max_depth": 6, "max_features": 1.0, "min_samples_leaf": 10, "min_samples_split": 10, "n_estimators": 400}
+          2            ExtraTrees                   9P        40.073547     {"bootstrap": true, "max_depth": 6, "max_features": 1.0, "min_samples_leaf": 3, "min_samples_split": 2, "n_estimators": 400}
+          3            ExtraTrees                   9P        40.288345    {"bootstrap": true, "max_depth": 6, "max_features": 1.0, "min_samples_leaf": 1, "min_samples_split": 10, "n_estimators": 700}
+          4            ExtraTrees                   9P        39.851213 {"bootstrap": true, "max_depth": 8, "max_features": "sqrt", "min_samples_leaf": 3, "min_samples_split": 10, "n_estimators": 400}
+          5                   MLP                   9P        38.027304                                 {"activation": "tanh", "alpha": 0.001, "hidden_layer_sizes": [32], "learning_rate_init": 0.0005}
+
+BLOCK BOOTSTRAP SUMMARY
+------------------------------------------------------------------------------------------
+                    metric      mean    median    CI_2.5   CI_97.5  n_replicates  n_blocks
+delta_RMSE_ET9P_minus_ET3P -1.316685 -1.338661 -1.848671 -0.677187          5000        54
+ delta_MAE_ET9P_minus_ET3P -1.708502 -1.724521 -2.200993 -1.131444          5000        54
+  delta_R2_ET9P_minus_ET3P  0.064393  0.065204  0.033663  0.091210          5000        54
+
+INTERPRETIVE BOUNDARY
+------------------------------------------------------------------------------------------
+This analysis provides model-selection-aware nested spatial re-evaluation using a newly frozen outer validation geometry. It is stronger than reusing the original Phase 9 outer-fold scores.
+However, it is not an external independent dataset: the same 1,641 observations formed the historical development dataset. Therefore the result should be described as nested selection-aware confirmation rather than external geographic validation.
+
+==========================================================================================

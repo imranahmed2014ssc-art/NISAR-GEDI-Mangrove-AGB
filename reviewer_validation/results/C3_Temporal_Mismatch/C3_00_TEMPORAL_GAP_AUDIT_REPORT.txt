@@ -1,0 +1,175 @@
+================================================================================================
+C3 STEP 0 — TEMPORAL-GAP AUDIT AND PRE-MODEL STRATIFICATION
+================================================================================================
+
+STATUS
+------------------------------------------------------------------------------------------------
+NO MODEL WAS FITTED.
+C1 and C2 remain frozen.
+Temporal strata were defined using GEDI-to-primary-NISAR time gap only.
+AGBD and model performance were NOT used to define strata.
+
+INPUT
+------------------------------------------------------------------------------------------------
+D:\NISAR_Mangrove_Paper\04_Matched_Data\Predictor_Expansion\Phase8C2\Tables\GEDI_NISAR_expanded_predictors_1641.csv
+SHA256: de9fc736ec77d38dae527020b2d037c4567f3c814f874d9843da230c6bf67dc0
+Rows: 1641
+Unique acquisition passes: 8
+Maximum stored-vs-computed gap difference: 5.68434188608e-14 days
+
+PRIMARY SEPTEMBER-2026 GAP RANGE
+------------------------------------------------------------------------------------------------
+Minimum: 466.563333 days
+Median: 676.106181 days
+Maximum: 862.037350 days
+
+ACQUISITION PASSES — SHORTEST GAP FIRST
+------------------------------------------------------------------------------------------------
+ gap_rank_shortest_first  gap_stratum          acquisition_date   n  blocks  gap_days_median  shortest_gap_subset                                               source_file
+                       1  G1_SHORTEST 2025-06-08T09:58:05+00:00 113      14       466.563333                 True GEDI04_A_2025159095805_O36749_03_T09852_02_004_02_V003.h5
+                       2  G1_SHORTEST 2025-04-10T00:29:00+00:00 675      20       525.958530                 True GEDI04_A_2025100002900_O35828_02_T01905_02_004_02_V003.h5
+                       3 G2_SHORT_MID 2025-01-08T12:43:35+00:00   4       4       617.448403                False GEDI04_A_2025008124335_O34409_02_T07444_02_004_02_V003.h5
+                       4 G2_SHORT_MID 2024-11-10T20:56:23+00:00 446      13       676.106181                False GEDI04_A_2024315205623_O33499_03_T10158_02_004_02_V003.h5
+                       5  G3_LONG_MID 2024-09-17T09:31:30+00:00 341      11       730.581794                False GEDI04_A_2024261093130_O32654_02_T00482_02_004_02_V003.h5
+                       6  G3_LONG_MID 2024-06-30T01:55:35+00:00  12       6       809.898403                False GEDI04_A_2024182015535_O31424_03_T07006_02_004_02_V003.h5
+                       7   G4_LONGEST 2024-06-24T19:01:33+00:00  47      12       815.185926                False GEDI04_A_2024176190133_O31342_02_T08867_02_004_02_V003.h5
+                       8   G4_LONGEST 2024-05-08T22:35:30+00:00   3       2       862.037350                False GEDI04_A_2024129223530_O30615_03_T00000_02_004_02_V003.h5
+
+PREDECLARED TEMPORAL-GAP STRATA
+------------------------------------------------------------------------------------------------
+ gap_stratum  passes  observations  blocks_min  blocks_max  gap_days_min  gap_days_max  gap_days_median_of_passes
+ G1_SHORTEST       2           788          14          20    466.563333    525.958530                 496.260932
+G2_SHORT_MID       2           450           4          13    617.448403    676.106181                 646.777292
+ G3_LONG_MID       2           353           6          11    730.581794    809.898403                 770.240098
+  G4_LONGEST       2            50           2          12    815.185926    862.037350                 838.611638
+
+SHORTEST-GAP SUBSET
+------------------------------------------------------------------------------------------------
+         acquisition_date   n  blocks  gap_days_median                                               source_file
+2025-06-08T09:58:05+00:00 113      14       466.563333 GEDI04_A_2025159095805_O36749_03_T09852_02_004_02_V003.h5
+2025-04-10T00:29:00+00:00 675      20       525.958530 GEDI04_A_2025100002900_O35828_02_T01905_02_004_02_V003.h5
+
+EXISTING JUNE / TEMPORAL FILE INVENTORY
+------------------------------------------------------------------------------------------------
+              scan_root                                                                                                                                                            path suffix  size_bytes               matched_keyword status
+D:\NISAR_Mangrove_Paper                                                                 D:\NISAR_Mangrove_Paper\github_repo\code\portable\05_sensitivity\phase8a_saturation_analysis.py    .py       17355                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper                                                        D:\NISAR_Mangrove_Paper\github_repo\code\portable\08_temporal_sensitivity\phase8b2a_june25_chunked_V2.py    .py       16895 june | temporal | sensitivity  FOUND
+D:\NISAR_Mangrove_Paper                                            D:\NISAR_Mangrove_Paper\github_repo\code\portable\08_temporal_sensitivity\phase8b2b_june25_isolated_gedi_matching.py    .py       20040 june | temporal | sensitivity  FOUND
+D:\NISAR_Mangrove_Paper                                          D:\NISAR_Mangrove_Paper\github_repo\code\portable\08_temporal_sensitivity\phase8b2c_june25_locked_model_sensitivity.py    .py       26980 june | temporal | sensitivity  FOUND
+D:\NISAR_Mangrove_Paper                                                        D:\NISAR_Mangrove_Paper\github_repo\code\executed_original\05_sensitivity\phase8a_saturation_analysis.py    .py       17284                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper                                               D:\NISAR_Mangrove_Paper\github_repo\code\executed_original\08_temporal_sensitivity\phase8b2a_june25_chunked_V2.py    .py       16805 june | temporal | sensitivity  FOUND
+D:\NISAR_Mangrove_Paper                                   D:\NISAR_Mangrove_Paper\github_repo\code\executed_original\08_temporal_sensitivity\phase8b2b_june25_isolated_gedi_matching.py    .py       19938 june | temporal | sensitivity  FOUND
+D:\NISAR_Mangrove_Paper                                 D:\NISAR_Mangrove_Paper\github_repo\code\executed_original\08_temporal_sensitivity\phase8b2c_june25_locked_model_sensitivity.py    .py       26807 june | temporal | sensitivity  FOUND
+D:\NISAR_Mangrove_Paper                                    D:\NISAR_Mangrove_Paper\github_doi\NISAR_GEDI_GitHub_FinalUpload\code\portable\05_sensitivity\phase8a_saturation_analysis.py    .py       17166                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper                           D:\NISAR_Mangrove_Paper\github_doi\NISAR_GEDI_GitHub_FinalUpload\code\portable\08_temporal_sensitivity\phase8b2a_june25_chunked_V2.py    .py       16412 june | temporal | sensitivity  FOUND
+D:\NISAR_Mangrove_Paper               D:\NISAR_Mangrove_Paper\github_doi\NISAR_GEDI_GitHub_FinalUpload\code\portable\08_temporal_sensitivity\phase8b2b_june25_isolated_gedi_matching.py    .py       19509 june | temporal | sensitivity  FOUND
+D:\NISAR_Mangrove_Paper             D:\NISAR_Mangrove_Paper\github_doi\NISAR_GEDI_GitHub_FinalUpload\code\portable\08_temporal_sensitivity\phase8b2c_june25_locked_model_sensitivity.py    .py       26304 june | temporal | sensitivity  FOUND
+D:\NISAR_Mangrove_Paper                           D:\NISAR_Mangrove_Paper\github_doi\NISAR_GEDI_GitHub_FinalUpload\code\executed_original\05_sensitivity\phase8a_saturation_analysis.py    .py       17096                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper                  D:\NISAR_Mangrove_Paper\github_doi\NISAR_GEDI_GitHub_FinalUpload\code\executed_original\08_temporal_sensitivity\phase8b2a_june25_chunked_V2.py    .py       16323 june | temporal | sensitivity  FOUND
+D:\NISAR_Mangrove_Paper      D:\NISAR_Mangrove_Paper\github_doi\NISAR_GEDI_GitHub_FinalUpload\code\executed_original\08_temporal_sensitivity\phase8b2b_june25_isolated_gedi_matching.py    .py       19408 june | temporal | sensitivity  FOUND
+D:\NISAR_Mangrove_Paper    D:\NISAR_Mangrove_Paper\github_doi\NISAR_GEDI_GitHub_FinalUpload\code\executed_original\08_temporal_sensitivity\phase8b2c_june25_locked_model_sensitivity.py    .py       26131 june | temporal | sensitivity  FOUND
+D:\NISAR_Mangrove_Paper                                                                           D:\NISAR_Mangrove_Paper\github_doi\code\05_sensitivity\phase8a_saturation_analysis.py    .py       17096                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper                                                                  D:\NISAR_Mangrove_Paper\github_doi\code\08_temporal_sensitivity\phase8b2a_june25_chunked_V2.py    .py       16323 june | temporal | sensitivity  FOUND
+D:\NISAR_Mangrove_Paper                                                      D:\NISAR_Mangrove_Paper\github_doi\code\08_temporal_sensitivity\phase8b2b_june25_isolated_gedi_matching.py    .py       19408 june | temporal | sensitivity  FOUND
+D:\NISAR_Mangrove_Paper                                                    D:\NISAR_Mangrove_Paper\github_doi\code\08_temporal_sensitivity\phase8b2c_june25_locked_model_sensitivity.py    .py       26131 june | temporal | sensitivity  FOUND
+D:\NISAR_Mangrove_Paper                                                                    D:\NISAR_Mangrove_Paper\06_Results\Temporal_Mismatch\TEMPORAL_MISMATCH_DIAGNOSTIC_REPORT.txt   .txt        7976                      temporal  FOUND
+D:\NISAR_Mangrove_Paper                                                      D:\NISAR_Mangrove_Paper\06_Results\Temporal_Mismatch\Tables\focus_models_error_vs_temporal_gap_octiles.csv   .csv        1019                      temporal  FOUND
+D:\NISAR_Mangrove_Paper                                                           D:\NISAR_Mangrove_Paper\06_Results\Temporal_Mismatch\Tables\OOF_error_vs_temporal_gap_association.csv   .csv        3780                      temporal  FOUND
+D:\NISAR_Mangrove_Paper                                                         D:\NISAR_Mangrove_Paper\06_Results\Temporal_Mismatch\Tables\OOF_model_performance_by_temporal_group.csv   .csv       12714                      temporal  FOUND
+D:\NISAR_Mangrove_Paper                                          D:\NISAR_Mangrove_Paper\06_Results\Temporal_Mismatch\Tables\OOF_model_performance_by_temporal_half_and_AGBD_regime.csv   .csv       13229                      temporal  FOUND
+D:\NISAR_Mangrove_Paper                                                       D:\NISAR_Mangrove_Paper\06_Results\Temporal_Mismatch\Tables\radar_AGBD_correlations_by_temporal_group.csv   .csv        2430                      temporal  FOUND
+D:\NISAR_Mangrove_Paper                                                         D:\NISAR_Mangrove_Paper\06_Results\Temporal_Mismatch\Tables\radar_TheilSen_slopes_closer_vs_farther.csv   .csv         975                      temporal  FOUND
+D:\NISAR_Mangrove_Paper                                                          D:\NISAR_Mangrove_Paper\06_Results\Temporal_Mismatch\Tables\temporal_group_counts_and_AGBD_summary.csv   .csv         929                      temporal  FOUND
+D:\NISAR_Mangrove_Paper                                                            D:\NISAR_Mangrove_Paper\06_Results\Saturation_Analysis\Tables\radar_sensitivity_by_biomass_range.csv   .csv        1350                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper                                                     D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C3_Temporal_Mismatch\C3_00_ACQUISITION_PASS_GAPS.csv   .csv        1952                      temporal  FOUND
+D:\NISAR_Mangrove_Paper                                                                D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C3_Temporal_Mismatch\C3_00_GAP_STRATA.csv   .csv         418                      temporal  FOUND
+D:\NISAR_Mangrove_Paper                                                 D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C3_Temporal_Mismatch\C3_00_SHOT_GAP_STRATUM_MANIFEST.csv   .csv      390630                      temporal  FOUND
+D:\NISAR_Mangrove_Paper                   D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\C2_02A_Buffer_Sensitivity\C2_02A_BUFFER_DELTA_BOOTSTRAP.csv   .csv     1059467                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper           D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\C2_02A_Buffer_Sensitivity\C2_02A_BUFFER_DELTA_BOOTSTRAP_SUMMARY.csv   .csv        1178                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper                      D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\C2_02A_Buffer_Sensitivity\C2_02A_BUFFER_FOLD_METRICS.csv   .csv        9540                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper                               D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\C2_02A_Buffer_Sensitivity\C2_02A_BUFFER_OOF.csv   .csv      586112                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper                    D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\C2_02A_Buffer_Sensitivity\C2_02A_BUFFER_POOLED_METRICS.csv   .csv        2266                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper                D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\C2_02A_Buffer_Sensitivity\C2_02A_BUFFER_SENSITIVITY_REPORT.txt   .txt       18202                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper                            D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\C2_02A_Buffer_Sensitivity\C2_02A_ET_PARAMETERS.csv   .csv        3685                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper  D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_1000m\Fold_1_TEST_MEMBERSHIP.csv   .csv        3964                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_1000m\Fold_1_TRAIN_MEMBERSHIP.csv   .csv      130763                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper  D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_1000m\Fold_2_TEST_MEMBERSHIP.csv   .csv        2862                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_1000m\Fold_2_TRAIN_MEMBERSHIP.csv   .csv      131811                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper  D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_1000m\Fold_3_TEST_MEMBERSHIP.csv   .csv       14976                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_1000m\Fold_3_TRAIN_MEMBERSHIP.csv   .csv      115671                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper  D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_1000m\Fold_4_TEST_MEMBERSHIP.csv   .csv       49933                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_1000m\Fold_4_TRAIN_MEMBERSHIP.csv   .csv       64550                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper  D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_1000m\Fold_5_TEST_MEMBERSHIP.csv   .csv       33813                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_1000m\Fold_5_TRAIN_MEMBERSHIP.csv   .csv       85598                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper  D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_2000m\Fold_1_TEST_MEMBERSHIP.csv   .csv        3964                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_2000m\Fold_1_TRAIN_MEMBERSHIP.csv   .csv      130514                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper  D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_2000m\Fold_2_TEST_MEMBERSHIP.csv   .csv        2862                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_2000m\Fold_2_TRAIN_MEMBERSHIP.csv   .csv      131811                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper  D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_2000m\Fold_3_TEST_MEMBERSHIP.csv   .csv       14976                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_2000m\Fold_3_TRAIN_MEMBERSHIP.csv   .csv      113091                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper  D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_2000m\Fold_4_TEST_MEMBERSHIP.csv   .csv       49933                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_2000m\Fold_4_TRAIN_MEMBERSHIP.csv   .csv       58746                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper  D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_2000m\Fold_5_TEST_MEMBERSHIP.csv   .csv       33813                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_2000m\Fold_5_TRAIN_MEMBERSHIP.csv   .csv       77125                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper  D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_3000m\Fold_1_TEST_MEMBERSHIP.csv   .csv        3964                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_3000m\Fold_1_TRAIN_MEMBERSHIP.csv   .csv      128859                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper  D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_3000m\Fold_2_TEST_MEMBERSHIP.csv   .csv        2862                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_3000m\Fold_2_TRAIN_MEMBERSHIP.csv   .csv      131727                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper  D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_3000m\Fold_3_TEST_MEMBERSHIP.csv   .csv       14976                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_3000m\Fold_3_TRAIN_MEMBERSHIP.csv   .csv      105817                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper  D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_3000m\Fold_4_TEST_MEMBERSHIP.csv   .csv       49933                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_3000m\Fold_4_TRAIN_MEMBERSHIP.csv   .csv       53864                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper  D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_3000m\Fold_5_TEST_MEMBERSHIP.csv   .csv       33813                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_3000m\Fold_5_TRAIN_MEMBERSHIP.csv   .csv       63897                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper   D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_500m\Fold_1_TEST_MEMBERSHIP.csv   .csv        3964                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper  D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_500m\Fold_1_TRAIN_MEMBERSHIP.csv   .csv      130845                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper   D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_500m\Fold_2_TEST_MEMBERSHIP.csv   .csv        2862                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper  D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_500m\Fold_2_TRAIN_MEMBERSHIP.csv   .csv      131811                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper   D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_500m\Fold_3_TEST_MEMBERSHIP.csv   .csv       14976                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper  D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_500m\Fold_3_TRAIN_MEMBERSHIP.csv   .csv      116002                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper   D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_500m\Fold_4_TEST_MEMBERSHIP.csv   .csv       49933                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper  D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_500m\Fold_4_TRAIN_MEMBERSHIP.csv   .csv       68575                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper   D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_500m\Fold_5_TEST_MEMBERSHIP.csv   .csv       33813                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper  D:\NISAR_Mangrove_Paper\06_Results\Reviewer_Validation\C2_Spatial_Transferability\Frozen_Geometries\Buffer_Sensitivity\Buffer_500m\Fold_5_TRAIN_MEMBERSHIP.csv   .csv       89541                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper                                                                                     D:\NISAR_Mangrove_Paper\06_Results\EDA\Tables\temporal_mismatch_summary.csv   .csv         119                      temporal  FOUND
+D:\NISAR_Mangrove_Paper                                                                              D:\NISAR_Mangrove_Paper\05_ML_DL\Temporal_Mismatch\phase8b_temporal_mismatch_V2.py    .py       27906                      temporal  FOUND
+D:\NISAR_Mangrove_Paper                                                                                                D:\NISAR_Mangrove_Paper\05_ML_DL\Temporal_Mismatch\README_V2.txt   .txt         760                      temporal  FOUND
+D:\NISAR_Mangrove_Paper                                                    D:\NISAR_Mangrove_Paper\05_ML_DL\Reviewer_Validation\C2_Spatial_Transferability\c2_02a_buffer_sensitivity.py    .py       25608                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper                                         D:\NISAR_Mangrove_Paper\05_ML_DL\Reviewer_Validation\C2_Spatial_Transferability\c2_02c_random_block_seed_sensitivity.py    .py       27368                   sensitivity  FOUND
+D:\NISAR_Mangrove_Paper                                                           D:\NISAR_Mangrove_Paper\05_ML_DL\Reviewer_Validation\C3_Temporal_Mismatch\c3_00_temporal_gap_audit.py    .py       16269                      temporal  FOUND
+D:\NISAR_Mangrove_Paper                                                      D:\NISAR_Mangrove_Paper\02_NISAR_GCOV\Availability_Check\Results\NISAR_GCOV_temporal_ranked_candidates.csv   .csv       36145                      temporal  FOUND
+      D:\new_nisar_data                                                D:\new_nisar_data\NISAR_L2_PR_GCOV_023_170_A_013_4005_DHDH_A_20260625T232921_20260625T232956_P05023_N_F_J_001.h5    .h5  6798966784               20260625 | 0625  FOUND
+      D:\new_nisar_data                                                                                 D:\new_nisar_data\Phase8B2_Scripts_B\phase8b2b_june25_isolated_gedi_matching.py    .py       19408                          june  FOUND
+      D:\new_nisar_data                                                                               D:\new_nisar_data\Phase8B2_Scripts_C\phase8b2c_june25_locked_model_sensitivity.py    .py       26131            june | sensitivity  FOUND
+      D:\new_nisar_data                                                                                            D:\new_nisar_data\Phase8B2_Scripts_V2\phase8b2a_june25_chunked_V2.py    .py       16323                          june  FOUND
+      D:\new_nisar_data                                                          D:\new_nisar_data\Phase8B2_June25_Sensitivity_V2\00_QC\JUNE25_NISAR_ACCEPTANCE_AND_PREDICTOR_QC_V2.txt   .txt        2407            june | sensitivity  FOUND
+      D:\new_nisar_data                                                                     D:\new_nisar_data\Phase8B2_June25_Sensitivity_V2\00_QC\June25_predictor_streaming_stats.csv   .csv         533            june | sensitivity  FOUND
+      D:\new_nisar_data                                                                                 D:\new_nisar_data\Phase8B2_June25_Sensitivity_V2\01_Predictors\June25_HH_dB.tif   .tif  2812314117            june | sensitivity  FOUND
+      D:\new_nisar_data                                                                           D:\new_nisar_data\Phase8B2_June25_Sensitivity_V2\01_Predictors\June25_HH_minus_HV.tif   .tif  2810414927            june | sensitivity  FOUND
+      D:\new_nisar_data                                                                                 D:\new_nisar_data\Phase8B2_June25_Sensitivity_V2\01_Predictors\June25_HV_dB.tif   .tif  2819055226            june | sensitivity  FOUND
+      D:\new_nisar_data                                                                                 D:\new_nisar_data\Phase8B2_June25_Sensitivity_V2\01_Predictors\June25_HV_SD.tif   .tif  2829095155            june | sensitivity  FOUND
+      D:\new_nisar_data                           D:\new_nisar_data\Phase8B2_June25_Sensitivity_V2\03_Temporal_Model_Sensitivity\QC\JUNE25_LOCKED_MODEL_TEMPORAL_SENSITIVITY_REPORT.txt   .txt        8562 june | temporal | sensitivity  FOUND
+      D:\new_nisar_data                                          D:\new_nisar_data\Phase8B2_June25_Sensitivity_V2\03_Temporal_Model_Sensitivity\Tables\frozen_fold_membership_check.csv   .csv         200 june | temporal | sensitivity  FOUND
+      D:\new_nisar_data                                     D:\new_nisar_data\Phase8B2_June25_Sensitivity_V2\03_Temporal_Model_Sensitivity\Tables\June25_locked_models_fold_metrics.csv   .csv        3885 june | temporal | sensitivity  FOUND
+      D:\new_nisar_data                                  D:\new_nisar_data\Phase8B2_June25_Sensitivity_V2\03_Temporal_Model_Sensitivity\Tables\June25_locked_models_OOF_predictions.csv   .csv      437932 june | temporal | sensitivity  FOUND
+      D:\new_nisar_data                       D:\new_nisar_data\Phase8B2_June25_Sensitivity_V2\03_Temporal_Model_Sensitivity\Tables\June25_locked_models_performance_by_AGBD_regime.csv   .csv        2401 june | temporal | sensitivity  FOUND
+      D:\new_nisar_data                                   D:\new_nisar_data\Phase8B2_June25_Sensitivity_V2\03_Temporal_Model_Sensitivity\Tables\June25_locked_models_pooled_metrics.csv   .csv         894 june | temporal | sensitivity  FOUND
+      D:\new_nisar_data                               D:\new_nisar_data\Phase8B2_June25_Sensitivity_V2\03_Temporal_Model_Sensitivity\Tables\June25_vs_Sep17_locked_model_comparison.csv   .csv        1265 june | temporal | sensitivity  FOUND
+      D:\new_nisar_data                               D:\new_nisar_data\Phase8B2_June25_Sensitivity_V2\03_Temporal_Model_Sensitivity\Tables\June25_vs_Sep17_paired_error_comparison.csv   .csv         457 june | temporal | sensitivity  FOUND
+      D:\new_nisar_data                           D:\new_nisar_data\Phase8B2_June25_Sensitivity_V2\03_Temporal_Model_Sensitivity\Tables\Sep17_reference_pooled_metrics_recalculated.csv   .csv         890 june | temporal | sensitivity  FOUND
+      D:\new_nisar_data                                                                D:\new_nisar_data\Phase8B2_June25_Sensitivity_V2\02_GEDI_Matching\QC\JUNE25_GEDI_MATCHING_QC.txt   .txt        3301            june | sensitivity  FOUND
+      D:\new_nisar_data             D:\new_nisar_data\Phase8B2_June25_Sensitivity_V2\02_GEDI_Matching\Reference_Snapshot\GEDI_NISAR_modeling_table_with_spatial_folds_READONLY_COPY.csv   .csv     1195477            june | sensitivity  FOUND
+      D:\new_nisar_data                                                       D:\new_nisar_data\Phase8B2_June25_Sensitivity_V2\02_GEDI_Matching\Tables\GEDI_June25_matched_all_1641.csv   .csv     1546523            june | sensitivity  FOUND
+      D:\new_nisar_data                                                         D:\new_nisar_data\Phase8B2_June25_Sensitivity_V2\02_GEDI_Matching\Tables\GEDI_June25_valid80_subset.csv   .csv     1546523            june | sensitivity  FOUND
+      D:\new_nisar_data                                                 D:\new_nisar_data\Phase8B2_June25_Sensitivity_V2\02_GEDI_Matching\Tables\June25_predictor_AGBD_correlations.csv   .csv         303            june | sensitivity  FOUND
+      D:\new_nisar_data                                   D:\new_nisar_data\Phase8B2_June25_Sensitivity_V2\02_GEDI_Matching\Tables\June25_predictor_stats_at_frozen_GEDI_footprints.csv   .csv         500            june | sensitivity  FOUND
+      D:\new_nisar_data                                     D:\new_nisar_data\Phase8B2_June25_Sensitivity_V2\02_GEDI_Matching\Tables\June25_vs_Sep17_same_GEDI_predictor_comparison.csv   .csv         830            june | sensitivity  FOUND
+
+C3 NEXT STEPS
+------------------------------------------------------------------------------------------------
+1. Evaluate predictive skill by the four frozen acquisition-gap strata.
+2. Evaluate the frozen shortest-gap subset separately.
+3. Audit disturbance / land-cover stability between GEDI and NISAR dates.
+4. Evaluate season/hydrology sensitivity.
+5. Reconcile the existing June-2026 NISAR temporal-sensitivity experiment without mixing its workspace with the primary workflow.
+6. Contemporary field/airborne reference data are unavailable and will not be invented.

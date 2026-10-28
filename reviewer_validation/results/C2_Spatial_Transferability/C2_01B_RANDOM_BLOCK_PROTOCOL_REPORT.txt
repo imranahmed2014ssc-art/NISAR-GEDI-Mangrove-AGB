@@ -1,0 +1,54 @@
+==============================================================================================
+C2 STEP 1B — RANDOMIZED SPATIAL-BLOCK ASSIGNMENT PROTOCOL
+==============================================================================================
+
+STATUS
+----------------------------------------------------------------------------------------------
+This protocol amendment was created BEFORE any C2 model performance was observed.
+Existing contiguous KMeans geometries remain unchanged and frozen.
+This new component addresses sensitivity to repeated block-to-fold allocation.
+NO MODEL WAS FITTED.
+NO C1 RESULT WAS MODIFIED.
+
+METHOD
+----------------------------------------------------------------------------------------------
+54 pre-existing 3-km spatial blocks remain indivisible units.
+Blocks are ranked by sample count and processed in batches of five.
+Within each batch, block order and fold labels are randomized using the locked seed.
+This approximately balances block sampling density without using AGBD or predictor values.
+A 500-m train-test exclusion buffer is applied after each assignment.
+
+Seeds: [20261001, 20261002, 20261003, 20261004, 20261005, 20261006, 20261007, 20261008, 20261009, 20261010]
+Unique assignment hashes: 10
+
+COMPACT GEOMETRY SUMMARY
+----------------------------------------------------------------------------------------------
+ repeat_index     seed  min_test_n  max_test_n  min_test_blocks  max_test_blocks  min_train_n  max_train_n  min_train_blocks  min_distance_m
+            1 20261001         275         444               10               11         1066         1323                41      502.918092
+            2 20261002         271         410               10               11         1151         1316                41      502.918092
+            3 20261003         298         405               10               11         1120         1261                41      502.918092
+            4 20261004         261         434               10               11         1121         1290                40      502.918092
+            5 20261005         287         415               10               11         1109         1259                40      502.918092
+            6 20261006         285         395               10               11         1111         1267                42      502.918092
+            7 20261007         277         452               10               11         1056         1289                41      502.918092
+            8 20261008         273         401               10               11         1134         1285                40      502.918092
+            9 20261009         263         427               10               11         1089         1293                41      502.918092
+           10 20261010         266         423               10               11         1116         1283                40      502.918092
+
+ASSIGNMENT HASHES
+----------------------------------------------------------------------------------------------
+ repeat_index     seed                                                assignment_sha256
+            1 20261001 fc9257edf856fa804d409ab1a67d333693c938a77e6db730d4fed2a7d6eba27f
+            2 20261002 1e35943db1536dc3c8dcc97dd5a29283db1d465528f69ef86568ac3e454ed90a
+            3 20261003 4d5416edd1da56e0b8e9c3998e1151391220fad4a0b5a84b808f81d91f27de88
+            4 20261004 c4f561fa8e718c7af5b5098d5c2615c60feec1ed7750fb6a52508c5bc53fac2f
+            5 20261005 b196af4cf8f47d4191700cf2f14429f58cbb61ea8b07f7bfb22905923d79fb5f
+            6 20261006 c55016a18b8e8f95a9bc8ae9ca2f1cbe30818b233486c60d18071eb013074294
+            7 20261007 22da954caff3e1bf8ae6343db36a4c86d4b413b1c4d5e6998eb7cb84a29a731c
+            8 20261008 7a5729c6a7633a93ff7141dd0c75225a8e5de4d45c738bf499317cd5949a7d67
+            9 20261009 75a75240ea2c58035b0b6fb76e5fca750d2bb70b32dda5986b4686e7249aab7a
+           10 20261010 eec3382d74d978846e7edcbb474a8daab569c9ab15b59862f0223d8cc77e3a2c
+
+LOCK
+----------------------------------------------------------------------------------------------
+These ten randomized assignments are now frozen. Do not regenerate them based on subsequent model performance.

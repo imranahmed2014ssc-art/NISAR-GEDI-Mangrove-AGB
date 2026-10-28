@@ -1,0 +1,6 @@
+outer_fold,selected_model_family,selected_feature_set,best_inner_RMSE,best_params_json
+1,ExtraTrees,9P,40.32977428355718,"{""bootstrap"": false, ""max_depth"": 6, ""max_features"": 1.0, ""min_samples_leaf"": 10, ""min_samples_split"": 10, ""n_estimators"": 400}"
+2,ExtraTrees,9P,40.073547317096796,"{""bootstrap"": true, ""max_depth"": 6, ""max_features"": 1.0, ""min_samples_leaf"": 3, ""min_samples_split"": 2, ""n_estimators"": 400}"
+3,ExtraTrees,9P,40.28834467109437,"{""bootstrap"": true, ""max_depth"": 6, ""max_features"": 1.0, ""min_samples_leaf"": 1, ""min_samples_split"": 10, ""n_estimators"": 700}"
+4,ExtraTrees,9P,39.85121325787727,"{""bootstrap"": true, ""max_depth"": 8, ""max_features"": ""sqrt"", ""min_samples_leaf"": 3, ""min_samples_split"": 10, ""n_estimators"": 400}"
+5,MLP,9P,38.02730424063988,"{""activation"": ""tanh"", ""alpha"": 0.001, ""hidden_layer_sizes"": [32], ""learning_rate_init"": 0.0005}"

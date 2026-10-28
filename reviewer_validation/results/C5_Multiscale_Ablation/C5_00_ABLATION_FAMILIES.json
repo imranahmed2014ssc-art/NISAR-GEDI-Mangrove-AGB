@@ -1,0 +1,168 @@
+{
+  "status": "FROZEN_BEFORE_C5_MODEL_RESULTS",
+  "input_table": "D:\\NISAR_Mangrove_Paper\\04_Matched_Data\\Predictor_Expansion\\Phase8C2\\Tables\\GEDI_NISAR_expanded_predictors_1641.csv",
+  "input_sha256": "de9fc736ec77d38dae527020b2d037c4567f3c814f874d9843da230c6bf67dc0",
+  "n_rows": 1641,
+  "n_unique_shots": 1641,
+  "n_spatial_blocks": 54,
+  "families": [
+    {
+      "family": "A00_COORD_ONLY",
+      "role": "spatial_diagnostic",
+      "predictors": [
+        "utm_x",
+        "utm_y"
+      ],
+      "purpose": "Tests whether geographic location alone carries apparent predictive skill."
+    },
+    {
+      "family": "A01_HV9_MEAN_ONLY",
+      "role": "radar_ablation",
+      "predictors": [
+        "HV_MeanLin_dB_9x9"
+      ],
+      "purpose": "Tests whether contextual HV alone carries most of the multiscale signal."
+    },
+    {
+      "family": "A02_HH_HV9_MEANS",
+      "role": "radar_ablation",
+      "predictors": [
+        "HH_MeanLin_dB_9x9",
+        "HV_MeanLin_dB_9x9"
+      ],
+      "purpose": "Tests dual-polarization 9x9 contextual means without local predictors."
+    },
+    {
+      "family": "A03_3P_BASE",
+      "role": "reference_ablation",
+      "predictors": [
+        "HH_dB",
+        "HV_dB",
+        "HV_SD"
+      ],
+      "purpose": "Frozen historical three-predictor baseline."
+    },
+    {
+      "family": "A04_3P_PLUS_HV9_MEAN",
+      "role": "radar_ablation",
+      "predictors": [
+        "HH_dB",
+        "HV_dB",
+        "HV_SD",
+        "HV_MeanLin_dB_9x9"
+      ],
+      "purpose": "Tests incremental value of contextual HV mean alone."
+    },
+    {
+      "family": "A05_3P_PLUS_9X9_MEANS",
+      "role": "radar_ablation",
+      "predictors": [
+        "HH_dB",
+        "HV_dB",
+        "HV_SD",
+        "HH_MeanLin_dB_9x9",
+        "HV_MeanLin_dB_9x9"
+      ],
+      "purpose": "Tests contextual means separately from contextual heterogeneity."
+    },
+    {
+      "family": "A06_3P_PLUS_9X9_HETEROGENEITY",
+      "role": "radar_ablation",
+      "predictors": [
+        "HH_dB",
+        "HV_dB",
+        "HV_SD",
+        "HH_SD_dB_9x9",
+        "HV_SD_dB_9x9",
+        "PolContrast_SD_dB_9x9"
+      ],
+      "purpose": "Tests whether contextual heterogeneity rather than contextual mean drives the gain."
+    },
+    {
+      "family": "A07_3P_PLUS_HH3_SD",
+      "role": "support_ablation",
+      "predictors": [
+        "HH_dB",
+        "HV_dB",
+        "HV_SD",
+        "HH_SD_dB_3x3"
+      ],
+      "purpose": "Tests the incremental local 3x3 HH heterogeneity term."
+    },
+    {
+      "family": "A08_3P_PLUS_5X5_CONTEXT",
+      "role": "support_ablation",
+      "predictors": [
+        "HH_dB",
+        "HV_dB",
+        "HV_SD",
+        "HH_MeanLin_dB_5x5",
+        "HV_MeanLin_dB_5x5",
+        "HH_SD_dB_5x5",
+        "HV_SD_dB_5x5",
+        "PolContrast_SD_dB_5x5"
+      ],
+      "purpose": "Eight-predictor 5x5 contextual model for matched support-size comparison."
+    },
+    {
+      "family": "A09_3P_PLUS_9X9_CONTEXT",
+      "role": "support_ablation",
+      "predictors": [
+        "HH_dB",
+        "HV_dB",
+        "HV_SD",
+        "HH_MeanLin_dB_9x9",
+        "HV_MeanLin_dB_9x9",
+        "HH_SD_dB_9x9",
+        "HV_SD_dB_9x9",
+        "PolContrast_SD_dB_9x9"
+      ],
+      "purpose": "Eight-predictor 9x9 contextual model directly comparable with A08."
+    },
+    {
+      "family": "A10_HISTORICAL_9P",
+      "role": "historical_reference",
+      "predictors": [
+        "HH_dB",
+        "HV_dB",
+        "HV_SD",
+        "HH_SD_dB_3x3",
+        "HH_MeanLin_dB_9x9",
+        "HV_MeanLin_dB_9x9",
+        "HH_SD_dB_9x9",
+        "HV_SD_dB_9x9",
+        "PolContrast_SD_dB_9x9"
+      ],
+      "purpose": "Exact previously locked historical 9P predictor family."
+    },
+    {
+      "family": "A11_FULL_14P",
+      "role": "c1b_reference",
+      "predictors": [
+        "HH_dB",
+        "HV_dB",
+        "HV_SD",
+        "HH_SD_dB_3x3",
+        "HH_MeanLin_dB_5x5",
+        "HV_MeanLin_dB_5x5",
+        "HH_SD_dB_5x5",
+        "HV_SD_dB_5x5",
+        "PolContrast_SD_dB_5x5",
+        "HH_MeanLin_dB_9x9",
+        "HV_MeanLin_dB_9x9",
+        "HH_SD_dB_9x9",
+        "HV_SD_dB_9x9",
+        "PolContrast_SD_dB_9x9"
+      ],
+      "purpose": "Exact C1B Full14P family selected in all five C1B outer folds."
+    }
+  ],
+  "analysis_rules": [
+    "No predictor family may be added or removed after viewing C5 performance.",
+    "No family may be modified after viewing C5 performance.",
+    "A08 and A09 provide the matched 5x5 versus 9x9 support comparison.",
+    "A00 is a spatial diagnostic and is not a radar biomass model.",
+    "C1-C4 remain frozen.",
+    "No operational biomass-map claim will be made."
+  ]
+}

@@ -1,0 +1,39 @@
+================================================================================================
+C3 STEP 2B - CORRECTED READ-ONLY JUNE TEMPORAL-GAP AUDIT
+================================================================================================
+
+STATUS
+------------------------------------------------------------------------------------------------
+NO MODEL WAS FITTED.
+NO FILE UNDER D:\new_nisar_data WAS MODIFIED.
+The previous Step-2 gap comparison used the stale September delta_days_to_NISAR field contained in the June matched table.
+This audit recomputes June temporal gaps directly from GEDI acquisition datetimes and the June NISAR product acquisition timestamp.
+
+JUNE NISAR PRODUCT
+------------------------------------------------------------------------------------------------
+D:\new_nisar_data\NISAR_L2_PR_GCOV_023_170_A_013_4005_DHDH_A_20260625T232921_20260625T232956_P05023_N_F_J_001.h5
+Parsed acquisition start: 2026-06-25 23:29:21+00:00
+
+SEPTEMBER QC
+------------------------------------------------------------------------------------------------
+Maximum stored-vs-recomputed September gap difference: 5.68434188608e-14 days
+
+CORRECTED GAP SUMMARY
+------------------------------------------------------------------------------------------------
+      scene            nisar_datetime    n  min_gap_days  median_gap_days  mean_gap_days  max_gap_days
+ Sep17_2026 2026-09-17 23:29:17+00:00 1641    466.563333       676.106181     616.394782    862.037350
+June25_2026 2026-06-25 23:29:21+00:00 1641    382.563380       592.106227     532.394829    778.037396
+
+GAP REDUCTION
+------------------------------------------------------------------------------------------------
+Median reduction (Sep minus June): 83.999954 days
+Minimum per-shot reduction: 83.999954 days
+Maximum per-shot reduction: 83.999954 days
+SD of per-shot reduction: 1.92458541995e-14 days
+
+SCIENTIFIC INTERPRETATION
+------------------------------------------------------------------------------------------------
+The June scene reduces the GEDI-to-NISAR temporal gap relative to the September scene, but the two scenes also differ in season, hydrology, moisture, tide, and potentially other environmental conditions.
+The existing locked-model comparison showed nearly unchanged nonlinear model performance.
+Therefore the supported conclusion is: 'the tested temporal-gap reduction did not materially alter nonlinear model performance.'
+This does not establish that temporal mismatch is irrelevant.

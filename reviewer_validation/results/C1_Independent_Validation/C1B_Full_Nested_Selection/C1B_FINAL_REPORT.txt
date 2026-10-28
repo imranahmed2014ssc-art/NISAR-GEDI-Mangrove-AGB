@@ -1,0 +1,69 @@
+==========================================================================================
+C1B FULL NESTED MODEL/PREDICTOR-SELECTION REPORT
+==========================================================================================
+
+DESIGN
+------------------------------------------------------------------------------------------
+Five geographic outer folds were created and frozen before C1 reviewer-validation modeling.
+For every outer fold, all model-family selection, predictor-family selection, preprocessing, and hyperparameter tuning occurred inside the buffered outer-training sample only.
+The outer test file was not opened by this script until the complete inner selection procedure for that fold was finished.
+Seven predictor families and seven historical model families were predeclared.
+Inner tuning used four-fold GroupKFold by 3-km cv_block_id.
+Selection criterion: minimum mean inner RMSE.
+
+SELECTED CONFIGURATION BY OUTER FOLD
+------------------------------------------------------------------------------------------
+ outer_fold selected_model_family selected_feature_family  selected_n_predictors                                                                                                                                                                                                              selected_predictors  best_inner_RMSE                                                                                                                best_params_json  train_n  test_n  train_blocks  test_blocks  outer_RMSE  outer_MAE  outer_R2
+          1            ExtraTrees            F07_FULL_14P                     14 HH_dB | HV_dB | HV_SD | HH_SD_dB_3x3 | HH_MeanLin_dB_5x5 | HV_MeanLin_dB_5x5 | HH_SD_dB_5x5 | HV_SD_dB_5x5 | PolContrast_SD_dB_5x5 | HH_MeanLin_dB_9x9 | HV_MeanLin_dB_9x9 | HH_SD_dB_9x9 | HV_SD_dB_9x9 | PolContrast_SD_dB_9x9        40.269975    {"bootstrap": true, "max_depth": 8, "max_features": 0.6, "min_samples_leaf": 6, "min_samples_split": 2, "n_estimators": 700}     1579      61            42           12   32.311057  25.585910 -0.048995
+          2            ExtraTrees            F07_FULL_14P                     14 HH_dB | HV_dB | HV_SD | HH_SD_dB_3x3 | HH_MeanLin_dB_5x5 | HV_MeanLin_dB_5x5 | HH_SD_dB_5x5 | HV_SD_dB_5x5 | PolContrast_SD_dB_5x5 | HH_MeanLin_dB_9x9 | HV_MeanLin_dB_9x9 | HH_SD_dB_9x9 | HV_SD_dB_9x9 | PolContrast_SD_dB_9x9        40.036163   {"bootstrap": true, "max_depth": 8, "max_features": 0.8, "min_samples_leaf": 6, "min_samples_split": 10, "n_estimators": 700}     1597      44            49            5   32.851233  26.725080  0.104863
+          3            ExtraTrees            F07_FULL_14P                     14 HH_dB | HV_dB | HV_SD | HH_SD_dB_3x3 | HH_MeanLin_dB_5x5 | HV_MeanLin_dB_5x5 | HH_SD_dB_5x5 | HV_SD_dB_5x5 | PolContrast_SD_dB_5x5 | HH_MeanLin_dB_9x9 | HV_MeanLin_dB_9x9 | HH_SD_dB_9x9 | HV_SD_dB_9x9 | PolContrast_SD_dB_9x9        40.182331    {"bootstrap": true, "max_depth": 8, "max_features": 0.6, "min_samples_leaf": 6, "min_samples_split": 2, "n_estimators": 700}     1407     233            41           13   38.974049  32.587418 -0.834590
+          4            ExtraTrees            F07_FULL_14P                     14 HH_dB | HV_dB | HV_SD | HH_SD_dB_3x3 | HH_MeanLin_dB_5x5 | HV_MeanLin_dB_5x5 | HH_SD_dB_5x5 | HV_SD_dB_5x5 | PolContrast_SD_dB_5x5 | HH_MeanLin_dB_9x9 | HV_MeanLin_dB_9x9 | HH_SD_dB_9x9 | HV_SD_dB_9x9 | PolContrast_SD_dB_9x9        39.745059 {"bootstrap": true, "max_depth": null, "max_features": 0.6, "min_samples_leaf": 6, "min_samples_split": 2, "n_estimators": 300}      832     777            39           14   41.459289  34.622824 -0.003049
+          5            ExtraTrees            F07_FULL_14P                     14 HH_dB | HV_dB | HV_SD | HH_SD_dB_3x3 | HH_MeanLin_dB_5x5 | HV_MeanLin_dB_5x5 | HH_SD_dB_5x5 | HV_SD_dB_5x5 | PolContrast_SD_dB_5x5 | HH_MeanLin_dB_9x9 | HV_MeanLin_dB_9x9 | HH_SD_dB_9x9 | HV_SD_dB_9x9 | PolContrast_SD_dB_9x9        38.168684   {"bootstrap": false, "max_depth": 8, "max_features": 0.8, "min_samples_leaf": 6, "min_samples_split": 5, "n_estimators": 700}     1085     526            44           10   42.661146  36.164044  0.033215
+
+POOLED OUTER-TEST PERFORMANCE
+------------------------------------------------------------------------------------------
+              model   fold    n  train_n  test_n  RMSE_Mg_ha  MAE_Mg_ha        R2  Bias_Mg_ha  rRMSE_percent  Pearson_r  Spearman_rho  observed_mean  predicted_mean  observed_sd  predicted_sd  pred_to_obs_SD_ratio
+C1B_NESTED_SELECTED POOLED 1641      NaN    1641   40.995837  34.280155  0.025356   -1.938920      75.054514   0.181909      0.135451      54.621414       52.682494    41.538346     10.651921              0.256436
+      C1B_MEAN_ONLY POOLED 1641      NaN    1641   42.697366  36.443352 -0.057228   -2.817237      78.169645  -0.219567     -0.229798      54.621414       51.804177    41.538346      4.069822              0.097977
+
+OUTER-FOLD ERRORS
+------------------------------------------------------------------------------------------
+              model  fold   n  train_n  test_n  RMSE_Mg_ha  MAE_Mg_ha        R2  Bias_Mg_ha  rRMSE_percent  Pearson_r  Spearman_rho  observed_mean  predicted_mean  observed_sd  predicted_sd  pred_to_obs_SD_ratio
+C1B_NESTED_SELECTED     1  61     1579      61   32.311057  25.585910 -0.048995   14.193051      97.171899   0.392240      0.476943      33.251442       47.444493    31.809280  1.180882e+01          3.712382e-01
+      C1B_MEAN_ONLY     1  61     1579      61   38.576877  32.075099 -0.495289   22.202085     116.015653        NaN           NaN      33.251442       55.453527    31.809280  2.149318e-14          6.756891e-16
+C1B_NESTED_SELECTED     2  44     1597      44   32.851233  26.725080  0.104863   -4.525032      52.750630   0.361140      0.286963      62.276474       57.751442    35.123600  9.431945e+00          2.685358e-01
+      C1B_MEAN_ONLY     2  44     1597      44   35.602007  28.380432 -0.051320   -7.865969      57.167666        NaN           NaN      62.276474       54.410505    35.123600  1.437515e-14          4.092732e-16
+C1B_NESTED_SELECTED     3 233     1407     233   38.974049  32.587418 -0.834590   26.063238     125.899309   0.180023      0.177583      30.956524       57.019762    28.836329  1.141357e+01          3.958052e-01
+      C1B_MEAN_ONLY     3 233     1407     233   39.884122  33.294276 -0.921268   27.618438     128.839151        NaN           NaN      30.956524       58.574962    28.836329  2.848290e-14          9.877435e-16
+C1B_NESTED_SELECTED     4 777      832     777   41.459289  34.622824 -0.003049  -10.094718      67.241650   0.240645      0.177660      61.657156       51.562438    41.422894  8.367556e+00          2.020032e-01
+      C1B_MEAN_ONLY     4 777      832     777   43.660198  37.136015 -0.112371  -13.876779      70.811241        NaN           NaN      61.657156       47.780377    41.422894  0.000000e+00          0.000000e+00
+C1B_NESTED_SELECTED     5 526     1085     526   42.661146  36.164044  0.033215   -3.949775      75.441069   0.215632      0.193811      56.548969       52.599194    43.429094  1.243398e+01          2.863054e-01
+      C1B_MEAN_ONLY     5 526     1085     526   43.456423  37.996140 -0.003166   -2.441351      76.847419        NaN           NaN      56.548969       54.107618    43.429094  0.000000e+00          0.000000e+00
+
+MODEL SELECTION FREQUENCY
+------------------------------------------------------------------------------------------
+model_family  n_outer_folds
+  ExtraTrees              5
+
+FEATURE-FAMILY SELECTION FREQUENCY
+------------------------------------------------------------------------------------------
+feature_family  n_outer_folds
+  F07_FULL_14P              5
+
+54-BLOCK BOOTSTRAP SUMMARY
+------------------------------------------------------------------------------------------
+                        metric      mean    median    CI_2.5   CI_97.5  n_replicates  n_blocks
+                 selected_RMSE 40.896469 40.942496 38.423951 43.091313          5000        54
+                  selected_MAE 34.182128 34.218073 31.677881 36.317655          5000        54
+                   selected_R2  0.019779  0.021439 -0.023651  0.052917          5000        54
+delta_RMSE_selected_minus_mean -1.696386 -1.714142 -2.320641 -0.941942          5000        54
+ delta_MAE_selected_minus_mean -2.154456 -2.171800 -2.717175 -1.492499          5000        54
+  delta_R2_selected_minus_mean  0.082965  0.083488  0.046883  0.114601          5000        54
+
+INTERPRETATION BOUNDARY
+------------------------------------------------------------------------------------------
+This experiment explicitly accounts for model-family, predictor-family, and hyperparameter selection within nested spatial validation.
+It remains an internal nested confirmation using the same frozen 1,641-observation development dataset; it is not an external independent geographic dataset.
+No outer folds were modified in response to C1A or C1B model performance.
+
+==========================================================================================

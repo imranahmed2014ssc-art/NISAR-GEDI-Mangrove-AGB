@@ -1,0 +1,461 @@
+﻿   1: from pathlib import Path
+   2: from datetime import datetime
+   3: import hashlib
+   4: import sys
+   5: import traceback
+   6: import warnings
+   7: 
+   8: import numpy as np
+   9: import pandas as pd
+  10: from scipy.stats import pearsonr, spearmanr
+  11: from scipy.cluster.hierarchy import linkage, leaves_list
+  12: from scipy.spatial.distance import squareform
+  13: from sklearn.linear_model import LinearRegression
+  14: from sklearn.preprocessing import StandardScaler
+  15: import matplotlib.pyplot as plt
+  16: 
+  17: warnings.filterwarnings("ignore", category=RuntimeWarning)
+  18: 
+  19: # ============================================================
+  20: # PHASE 8C.3 â€” REDUNDANCY / DESCRIPTIVE SENSITIVITY SCREENING
+  21: # ============================================================
+  22: PROJECT = Path(r"D:\NISAR_Mangrove_Paper")
+  23: 
+  24: INPUT_TABLE = (
+  25:     PROJECT
+  26:     / "04_Matched_Data"
+  27:     / "Predictor_Expansion"
+  28:     / "Phase8C2"
+  29:     / "Tables"
+  30:     / "GEDI_NISAR_expanded_predictors_1641.csv"
+  31: )
+  32: 
+  33: EXPECTED_FROZEN_N = 1641
+  34: 
+  35: OUT_ROOT = (
+  36:     PROJECT
+  37:     / "05_ML_DL"
+  38:     / "Predictor_Expansion"
+  39:     / "Phase8C3_Screening"
+  40: )
+  41: TABLE_DIR = OUT_ROOT / "Tables"
+  42: FIG_DIR = OUT_ROOT / "Figures"
+  43: QC_DIR = OUT_ROOT / "QC"
+  44: for d in [TABLE_DIR, FIG_DIR, QC_DIR]:
+  45:     d.mkdir(parents=True, exist_ok=True)
+  46: 
+  47: # Existing 3P benchmark predictors.
+  48: BASE_3P = [
+  49:     "HH_dB",
+  50:     "HV_dB",
+  51:     "HV_SD",
+  52: ]
+  53: 
+  54: # Fixed expanded candidates from Phase 8C.1 / 8C.2.
+  55: NEW_11 = [
+  56:     "HH_SD_dB_3x3",
+  57:     "HH_MeanLin_dB_5x5",
+  58:     "HV_MeanLin_dB_5x5",
+  59:     "HH_SD_dB_5x5",
+  60:     "HV_SD_dB_5x5",
+  61:     "PolContrast_SD_dB_5x5",
+  62:     "HH_MeanLin_dB_9x9",
+  63:     "HV_MeanLin_dB_9x9",
+  64:     "HH_SD_dB_9x9",
+  65:     "HV_SD_dB_9x9",
+  66:     "PolContrast_SD_dB_9x9",
+  67: ]
+  68: 
+  69: # Primary expanded candidate space.
+  70: # HH_minus_HV is intentionally excluded because HH_minus_HV = HH_dB - HV_dB exactly.
+  71: CANDIDATES = BASE_3P + NEW_11
+  72: 
+  73: # HH_minus_HV is included in descriptive correlation tables only, if present.
+  74: DESCRIPTIVE_EXTRA = ["HH_minus_HV"]
+  75: 
+  76: HIGH_RHO = 0.85
+  77: VERY_HIGH_RHO = 0.95
+  78: 
+  79: # ============================================================
+  80: # HELPERS
+  81: # ============================================================
+  82: def sha256_file(path, chunk_size=8 * 1024 * 1024):
+  83:     h = hashlib.sha256()
+  84:     with open(path, "rb") as f:
+  85:         for chunk in iter(lambda: f.read(chunk_size), b""):
+  86:             h.update(chunk)
+  87:     return h.hexdigest()
+  88: 
+  89: def numeric_complete(df, cols):
+  90:     x = df[cols].apply(pd.to_numeric, errors="coerce")
+  91:     if x.isna().any().any():
+  92:         bad = x.columns[x.isna().any()].tolist()
+  93:         raise RuntimeError(f"Missing/non-numeric values in predictors: {bad}")
+  94:     return x
+  95: 
+  96: def vif_table(X):
+  97:     """
+  98:     VIF-like redundancy diagnostic using each standardized predictor as response
+  99:     and all other standardized predictors as covariates.
+ 100:     This uses predictor values only; AGBD is not involved.
+ 101:     """
+ 102:     scaler = StandardScaler()
+ 103:     Z = scaler.fit_transform(X.to_numpy(float))
+ 104:     rows = []
+ 105:     for j, name in enumerate(X.columns):
+ 106:         y = Z[:, j]
+ 107:         idx = [k for k in range(Z.shape[1]) if k != j]
+ 108:         reg = LinearRegression().fit(Z[:, idx], y)
+ 109:         r2 = float(reg.score(Z[:, idx], y))
+ 110:         if r2 >= 1.0 - 1e-12:
+ 111:             vif = np.inf
+ 112:         else:
+ 113:             vif = 1.0 / (1.0 - r2)
+ 114:         rows.append({
+ 115:             "predictor": name,
+ 116:             "R2_explained_by_other_predictors": r2,
+ 117:             "VIF_like": vif,
+ 118:         })
+ 119:     return pd.DataFrame(rows).sort_values(
+ 120:         ["VIF_like", "R2_explained_by_other_predictors"],
+ 121:         ascending=False
+ 122:     )
+ 123: 
+ 124: def high_corr_pairs(corr, method):
+ 125:     rows = []
+ 126:     cols = list(corr.columns)
+ 127:     for i in range(len(cols)):
+ 128:         for j in range(i + 1, len(cols)):
+ 129:             r = float(corr.iloc[i, j])
+ 130:             ar = abs(r)
+ 131:             if ar >= HIGH_RHO:
+ 132:                 rows.append({
+ 133:                     "method": method,
+ 134:                     "predictor_1": cols[i],
+ 135:                     "predictor_2": cols[j],
+ 136:                     "correlation": r,
+ 137:                     "abs_correlation": ar,
+ 138:                     "redundancy_level": (
+ 139:                         "VERY_HIGH_>=0.95" if ar >= VERY_HIGH_RHO
+ 140:                         else "HIGH_0.85_to_<0.95"
+ 141:                     ),
+ 142:                 })
+ 143:     return pd.DataFrame(rows).sort_values(
+ 144:         "abs_correlation", ascending=False
+ 145:     ) if rows else pd.DataFrame(
+ 146:         columns=[
+ 147:             "method", "predictor_1", "predictor_2",
+ 148:             "correlation", "abs_correlation", "redundancy_level"
+ 149:         ]
+ 150:     )
+ 151: 
+ 152: def agbd_descriptive(df, predictors):
+ 153:     """
+ 154:     Descriptive only. These results MUST NOT be used to choose predictors from
+ 155:     the full dataset before outer spatial CV.
+ 156:     """
+ 157:     y = pd.to_numeric(df["agbd"], errors="coerce").to_numpy(float)
+ 158:     rows = []
+ 159:     for p in predictors:
+ 160:         if p not in df.columns:
+ 161:             continue
+ 162:         x = pd.to_numeric(df[p], errors="coerce").to_numpy(float)
+ 163:         m = np.isfinite(x) & np.isfinite(y)
+ 164:         if m.sum() < 3:
+ 165:             continue
+ 166:         pe = pearsonr(x[m], y[m])
+ 167:         sp = spearmanr(x[m], y[m])
+ 168:         rows.append({
+ 169:             "predictor": p,
+ 170:             "n": int(m.sum()),
+ 171:             "Pearson_r_with_AGBD_DESCRIPTIVE_ONLY": float(pe.statistic),
+ 172:             "Spearman_rho_with_AGBD_DESCRIPTIVE_ONLY": float(sp.statistic),
+ 173:         })
+ 174:     return pd.DataFrame(rows)
+ 175: 
+ 176: def variance_table(X):
+ 177:     rows = []
+ 178:     for p in X.columns:
+ 179:         v = X[p].to_numpy(float)
+ 180:         sd = float(np.std(v, ddof=1))
+ 181:         rows.append({
+ 182:             "predictor": p,
+ 183:             "mean": float(np.mean(v)),
+ 184:             "sd": sd,
+ 185:             "cv_abs": float(abs(sd / np.mean(v))) if np.mean(v) != 0 else np.nan,
+ 186:             "min": float(np.min(v)),
+ 187:             "median": float(np.median(v)),
+ 188:             "max": float(np.max(v)),
+ 189:             "near_zero_variance": bool(sd < 1e-8),
+ 190:         })
+ 191:     return pd.DataFrame(rows)
+ 192: 
+ 193: def plot_corr_heatmap(corr, path_png, path_pdf, title):
+ 194:     # Reorder with hierarchical clustering using 1-|rho| as distance.
+ 195:     abs_corr = np.abs(corr.to_numpy(float))
+ 196:     dist = 1.0 - abs_corr
+ 197:     np.fill_diagonal(dist, 0.0)
+ 198: 
+ 199:     if len(corr) > 2:
+ 200:         condensed = squareform(dist, checks=False)
+ 201:         Z = linkage(condensed, method="average")
+ 202:         order = leaves_list(Z)
+ 203:     else:
+ 204:         order = np.arange(len(corr))
+ 205: 
+ 206:     ordered = corr.iloc[order, order]
+ 207: 
+ 208:     fig, ax = plt.subplots(figsize=(11.5, 9.5))
+ 209:     im = ax.imshow(ordered.to_numpy(float), vmin=-1, vmax=1, aspect="auto")
+ 210:     ax.set_xticks(np.arange(len(ordered.columns)))
+ 211:     ax.set_yticks(np.arange(len(ordered.index)))
+ 212:     ax.set_xticklabels(ordered.columns, rotation=70, ha="right", fontsize=8)
+ 213:     ax.set_yticklabels(ordered.index, fontsize=8)
+ 214:     ax.set_title(title, pad=12)
+ 215:     cbar = fig.colorbar(im, ax=ax, fraction=0.035, pad=0.03)
+ 216:     cbar.set_label("Correlation")
+ 217:     fig.tight_layout()
+ 218:     fig.savefig(path_png, dpi=450, bbox_inches="tight")
+ 219:     fig.savefig(path_pdf, bbox_inches="tight")
+ 220:     plt.close(fig)
+ 221: 
+ 222: def plot_vif(vif_df):
+ 223:     d = vif_df.copy()
+ 224:     # Replace inf for plotting only.
+ 225:     finite = d["VIF_like"].replace([np.inf, -np.inf], np.nan)
+ 226:     cap = np.nanmax(finite.to_numpy()) if finite.notna().any() else 100.0
+ 227:     cap = max(cap, 20.0)
+ 228:     d["VIF_plot"] = d["VIF_like"].replace(np.inf, cap * 1.15)
+ 229: 
+ 230:     d = d.sort_values("VIF_plot")
+ 231:     fig, ax = plt.subplots(figsize=(8.5, 6.8))
+ 232:     ax.barh(d["predictor"], d["VIF_plot"])
+ 233:     ax.axvline(5, linestyle="--", linewidth=1.0, label="VIF = 5")
+ 234:     ax.axvline(10, linestyle=":", linewidth=1.0, label="VIF = 10")
+ 235:     ax.set_xlabel("VIF-like predictor redundancy diagnostic")
+ 236:     ax.set_title("Expanded predictor multicollinearity diagnostic", pad=12)
+ 237:     ax.legend(loc="upper left", bbox_to_anchor=(1.02, 1.0), frameon=False)
+ 238:     fig.tight_layout()
+ 239:     fig.savefig(FIG_DIR / "predictor_VIF_like.png", dpi=450, bbox_inches="tight")
+ 240:     fig.savefig(FIG_DIR / "predictor_VIF_like.pdf", bbox_inches="tight")
+ 241:     plt.close(fig)
+ 242: 
+ 243: def plot_descriptive_agbd_corr(desc):
+ 244:     d = desc.copy()
+ 245:     d["abs_spearman"] = d[
+ 246:         "Spearman_rho_with_AGBD_DESCRIPTIVE_ONLY"
+ 247:     ].abs()
+ 248:     d = d.sort_values("abs_spearman")
+ 249: 
+ 250:     fig, ax = plt.subplots(figsize=(8.5, 7.0))
+ 251:     ax.barh(
+ 252:         d["predictor"],
+ 253:         d["Spearman_rho_with_AGBD_DESCRIPTIVE_ONLY"]
+ 254:     )
+ 255:     ax.axvline(0, linewidth=1.0)
+ 256:     ax.set_xlabel("Spearman Ï with AGBD (descriptive only)")
+ 257:     ax.set_title(
+ 258:         "Predictorâ€“AGBD associations\nNOT used for full-dataset feature selection",
+ 259:         pad=12
+ 260:     )
+ 261:     fig.tight_layout()
+ 262:     fig.savefig(
+ 263:         FIG_DIR / "descriptive_predictor_AGBD_spearman.png",
+ 264:         dpi=450, bbox_inches="tight"
+ 265:     )
+ 266:     fig.savefig(
+ 267:         FIG_DIR / "descriptive_predictor_AGBD_spearman.pdf",
+ 268:         bbox_inches="tight"
+ 269:     )
+ 270:     plt.close(fig)
+ 271: 
+ 272: # ============================================================
+ 273: # MAIN
+ 274: # ============================================================
+ 275: def main():
+ 276:     print("=" * 86)
+ 277:     print("PHASE 8C.3 â€” EXPANDED PREDICTOR REDUNDANCY / SCREENING DIAGNOSTICS")
+ 278:     print("=" * 86)
+ 279:     print("No model fitting. No full-dataset response-based feature selection.\n")
+ 280: 
+ 281:     if not INPUT_TABLE.exists():
+ 282:         raise FileNotFoundError(INPUT_TABLE)
+ 283: 
+ 284:     df = pd.read_csv(INPUT_TABLE)
+ 285:     print(f"Expanded table records: {len(df):,}")
+ 286:     print("Input SHA256:", sha256_file(INPUT_TABLE))
+ 287: 
+ 288:     if len(df) != EXPECTED_FROZEN_N:
+ 289:         raise RuntimeError(
+ 290:             f"Expected {EXPECTED_FROZEN_N:,} frozen records; found {len(df):,}"
+ 291:         )
+ 292: 
+ 293:     required = {"agbd"} | set(CANDIDATES)
+ 294:     missing = sorted(required - set(df.columns))
+ 295:     if missing:
+ 296:         raise RuntimeError(f"Missing required columns: {missing}")
+ 297: 
+ 298:     X = numeric_complete(df, CANDIDATES)
+ 299: 
+ 300:     # Exact identity check for original algebraic contrast if available.
+ 301:     algebraic_check = None
+ 302:     if "HH_minus_HV" in df.columns:
+ 303:         hh = pd.to_numeric(df["HH_dB"], errors="coerce").to_numpy(float)
+ 304:         hv = pd.to_numeric(df["HV_dB"], errors="coerce").to_numpy(float)
+ 305:         diff = pd.to_numeric(df["HH_minus_HV"], errors="coerce").to_numpy(float)
+ 306:         max_abs = float(np.nanmax(np.abs(diff - (hh - hv))))
+ 307:         algebraic_check = max_abs
+ 308: 
+ 309:     pear = X.corr(method="pearson")
+ 310:     spear = X.corr(method="spearman")
+ 311: 
+ 312:     pear_pairs = high_corr_pairs(pear, "Pearson")
+ 313:     spear_pairs = high_corr_pairs(spear, "Spearman")
+ 314:     pairs = pd.concat([pear_pairs, spear_pairs], ignore_index=True)
+ 315: 
+ 316:     vif = vif_table(X)
+ 317:     var = variance_table(X)
+ 318: 
+ 319:     desc_predictors = CANDIDATES + [
+ 320:         p for p in DESCRIPTIVE_EXTRA if p in df.columns
+ 321:     ]
+ 322:     desc = agbd_descriptive(df, desc_predictors)
+ 323: 
+ 324:     # Condition number after standardization, predictor-only diagnostic.
+ 325:     Z = StandardScaler().fit_transform(X.to_numpy(float))
+ 326:     cond = float(np.linalg.cond(Z))
+ 327: 
+ 328:     # Save tables
+ 329:     pear_path = TABLE_DIR / "predictor_Pearson_correlation_matrix.csv"
+ 330:     spear_path = TABLE_DIR / "predictor_Spearman_correlation_matrix.csv"
+ 331:     pairs_path = TABLE_DIR / "high_redundancy_predictor_pairs.csv"
+ 332:     vif_path = TABLE_DIR / "predictor_VIF_like.csv"
+ 333:     var_path = TABLE_DIR / "predictor_variance_summary.csv"
+ 334:     desc_path = TABLE_DIR / "predictor_AGBD_correlations_DESCRIPTIVE_ONLY.csv"
+ 335: 
+ 336:     pear.to_csv(pear_path)
+ 337:     spear.to_csv(spear_path)
+ 338:     pairs.to_csv(pairs_path, index=False)
+ 339:     vif.to_csv(vif_path, index=False)
+ 340:     var.to_csv(var_path, index=False)
+ 341:     desc.to_csv(desc_path, index=False)
+ 342: 
+ 343:     # Figures
+ 344:     plot_corr_heatmap(
+ 345:         spear,
+ 346:         FIG_DIR / "predictor_Spearman_heatmap.png",
+ 347:         FIG_DIR / "predictor_Spearman_heatmap.pdf",
+ 348:         "Expanded NISAR predictor redundancy â€” Spearman correlation"
+ 349:     )
+ 350:     plot_vif(vif)
+ 351:     plot_descriptive_agbd_corr(desc)
+ 352: 
+ 353:     very_high_spear = spear_pairs[
+ 354:         spear_pairs["abs_correlation"] >= VERY_HIGH_RHO
+ 355:     ].copy()
+ 356: 
+ 357:     report = [
+ 358:         "PHASE 8C.3 â€” EXPANDED PREDICTOR REDUNDANCY / SCREENING DIAGNOSTICS",
+ 359:         "=" * 86,
+ 360:         f"Run time: {datetime.now().astimezone().isoformat(timespec='seconds')}",
+ 361:         f"Input table: {INPUT_TABLE}",
+ 362:         f"Input SHA256: {sha256_file(INPUT_TABLE)}",
+ 363:         f"Records: {len(df):,}",
+ 364:         "",
+ 365:         "PRIMARY CANDIDATE SPACE",
+ 366:         ", ".join(CANDIDATES),
+ 367:         "",
+ 368:         "IMPORTANT EXCLUSION",
+ 369:         "HH_minus_HV is not part of the primary expanded candidate space because",
+ 370:         "HH_minus_HV = HH_dB - HV_dB exactly. It is retained only for descriptive audit.",
+ 371:         f"Maximum absolute algebraic check error: {algebraic_check}",
+ 372:         "",
+ 373:         "SCREENING PRINCIPLE",
+ 374:         "- Predictor-vs-predictor redundancy may be assessed on all 1,641 records because",
+ 375:         "  no AGBD response is used.",
+ 376:         "- Predictor-vs-AGBD correlations below are DESCRIPTIVE ONLY.",
+ 377:         "- They must NOT be used to cherry-pick a final feature subset before outer CV.",
+ 378:         "- Any response-based feature selection/tuning must occur inside buffered training",
+ 379:         "  data within the spatial cross-validation framework.",
+ 380:         "",
+ 381:         f"Standardized predictor matrix condition number: {cond:.6f}",
+ 382:         "",
+ 383:         "VERY HIGH SPEARMAN REDUNDANCY PAIRS (|rho| >= 0.95)",
+ 384:         (
+ 385:             very_high_spear.to_string(index=False)
+ 386:             if len(very_high_spear)
+ 387:             else "None"
+ 388:         ),
+ 389:         "",
+ 390:         "ALL HIGH REDUNDANCY PAIRS (|r/rho| >= 0.85)",
+ 391:         (
+ 392:             pairs.to_string(index=False)
+ 393:             if len(pairs)
+ 394:             else "None"
+ 395:         ),
+ 396:         "",
+ 397:         "VIF-LIKE REDUNDANCY DIAGNOSTIC",
+ 398:         vif.to_string(index=False),
+ 399:         "",
+ 400:         "DESCRIPTIVE PREDICTORâ€“AGBD CORRELATIONS â€” DO NOT USE FOR GLOBAL SELECTION",
+ 401:         desc.to_string(index=False),
+ 402:         "",
+ 403:         "DECISION RULE FOR PHASE 8C.4",
+ 404:         "Do not automatically drop variables based on AGBD correlation from this full table.",
+ 405:         "First review very-high predictor-only redundancy. Then define a compact expanded",
+ 406:         "feature set using physical interpretation + predictor-only redundancy, or place",
+ 407:         "any response-based selection strictly inside the training folds.",
+ 408:         "",
+ 409:         "PHASE 8C.3 STATUS: COMPLETE â€” REVIEW REQUIRED",
+ 410:     ]
+ 411: 
+ 412:     report_path = QC_DIR / "PHASE8C3_PREDICTOR_SCREENING_REPORT.txt"
+ 413:     report_path.write_text("\n".join(report), encoding="utf-8")
+ 414: 
+ 415:     print("\n" + "=" * 86)
+ 416:     print("PHASE 8C.3 COMPLETE â€” REVIEW REQUIRED")
+ 417:     print("=" * 86)
+ 418: 
+ 419:     print("\nVery-high Spearman redundancy pairs (|rho| >= 0.95):")
+ 420:     if len(very_high_spear):
+ 421:         print(very_high_spear.to_string(index=False))
+ 422:     else:
+ 423:         print("None")
+ 424: 
+ 425:     print("\nVIF-like redundancy diagnostic:")
+ 426:     print(vif.to_string(index=False))
+ 427: 
+ 428:     print("\nDescriptive predictorâ€“AGBD Spearman correlations:")
+ 429:     print(
+ 430:         desc[[
+ 431:             "predictor",
+ 432:             "Spearman_rho_with_AGBD_DESCRIPTIVE_ONLY"
+ 433:         ]].sort_values(
+ 434:             "Spearman_rho_with_AGBD_DESCRIPTIVE_ONLY",
+ 435:             key=lambda s: s.abs(),
+ 436:             ascending=False
+ 437:         ).to_string(index=False)
+ 438:     )
+ 439: 
+ 440:     print("\nCreated:")
+ 441:     print(report_path)
+ 442:     print(pairs_path)
+ 443:     print(vif_path)
+ 444:     print(desc_path)
+ 445:     print(f"Figures: {FIG_DIR}")
+ 446: 
+ 447:     print("\nIMPORTANT:")
+ 448:     print("Do NOT fit the Phase 8C.4 models yet.")
+ 449:     print("Upload the screening report, high-redundancy table, and VIF table for review.")
+ 450:     input("\nPress Enter to close...")
+ 451: 
+ 452: if __name__ == "__main__":
+ 453:     try:
+ 454:         main()
+ 455:     except Exception:
+ 456:         print("\n" + "=" * 86)
+ 457:         print("PHASE 8C.3 FAILED")
+ 458:         print("=" * 86)
+ 459:         traceback.print_exc()
+ 460:         input("\nPress Enter to close...")
+ 461:         sys.exit(1)

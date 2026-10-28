@@ -1,0 +1,19 @@
+C8 v1.0.2 reviewer-validation package
+
+Final package files: 463
+Expected SHA256 manifest entries: 462
+Package bytes before final manifest rewrite: 42914748
+
+Raw NISAR/GEDI/GMW data copied: NO
+D:\new_nisar_data modified: NO
+Scientific results modified: NO
+
+Frozen validation modules: C1-C6
+Reproducibility module: C8
+
+Target GitHub release: v1.0.2
+
+Previous Zenodo archive:
+v1.0.1 - 10.5281/zenodo.23675039
+
+v1.0.2 is intended to supersede v1.0.1 for the revised-manuscript reproducibility record.

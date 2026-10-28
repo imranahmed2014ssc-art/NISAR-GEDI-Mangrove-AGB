@@ -1,0 +1,3 @@
+relationship,n,Pearson_r,Pearson_p,Spearman_rho,Spearman_p
+AGBD_vs_absolute_SE,1641,-0.9021343865542609,0.0,-0.9465116293231801,0.0
+AGBD_vs_relative_SE_percent,1641,-0.7700598573331902,2.96e-322,-0.999999932111583,0.0

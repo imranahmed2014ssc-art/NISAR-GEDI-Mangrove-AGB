@@ -1,0 +1,119 @@
+==========================================================================================
+C1 PHASE 9 DEPENDENCY / FOLD INTEGRITY AUDIT
+==========================================================================================
+
+FROZEN TABLE
+------------------------------------------------------------------------------------------
+D:\NISAR_Mangrove_Paper\04_Matched_Data\Predictor_Expansion\Phase8C2\Tables\GEDI_NISAR_expanded_predictors_1641.csv
+Rows: 1641
+Unique shots: 1641
+Unique CV blocks: 54
+Spatial folds: [np.int64(1), np.int64(2), np.int64(3), np.int64(4), np.int64(5)]
+
+FROZEN FOLD SUMMARY
+------------------------------------------------------------------------------------------
+ spatial_fold   n  blocks  agbd_mean   agbd_sd
+            1 328      10  53.597635 41.823944
+            2 335      11  56.249354 42.327439
+            3 325      11  54.960967 40.828136
+            4 329      11  53.945064 40.884849
+            5 324      11  54.320810 41.989967
+
+PHASE 9 DEPENDENCY FILES FOUND
+------------------------------------------------------------------------------------------
+exact                  |      2 rows | D:\NISAR_Mangrove_Paper\06_Results\Predictor_Expansion\Phase9_ET9P_Final_Defensibility\Tables\ET3P_ET9P_core_metrics.csv
+exact                  |      5 rows | D:\NISAR_Mangrove_Paper\06_Results\Predictor_Expansion\Phase9_ET9P_Final_Defensibility\QC\ET9P_reproduction_audit.csv
+exact                  |      5 rows | D:\NISAR_Mangrove_Paper\06_Results\Predictor_Expansion\Phase9_ET9P_Final_Defensibility\Tables\ET9P_vs_ET3P_fold_comparison.csv
+exact                  |   3282 rows | D:\NISAR_Mangrove_Paper\06_Results\Extra_Trees\Tables\ET_OOF_predictions.csv
+exact                  |   4923 rows | D:\NISAR_Mangrove_Paper\06_Results\Predictor_Expansion\Phase8C4_Expanded9P\Tables\expanded9P_OOF_predictions.csv
+exact                  |     10 rows | D:\NISAR_Mangrove_Paper\06_Results\Predictor_Expansion\Phase8C4_Expanded9P\Tables\expanded9P_selected_hyperparameters.csv
+fold_test              |    328 rows | D:\NISAR_Mangrove_Paper\05_ML_DL\Spatial_CV\Buffered_500m\Fold_1\Fold_1_TEST.csv
+fold_test              |    335 rows | D:\NISAR_Mangrove_Paper\05_ML_DL\Spatial_CV\Buffered_500m\Fold_2\Fold_2_TEST.csv
+fold_test              |    325 rows | D:\NISAR_Mangrove_Paper\05_ML_DL\Spatial_CV\Buffered_500m\Fold_3\Fold_3_TEST.csv
+fold_test              |    329 rows | D:\NISAR_Mangrove_Paper\05_ML_DL\Spatial_CV\Buffered_500m\Fold_4\Fold_4_TEST.csv
+fold_test              |    324 rows | D:\NISAR_Mangrove_Paper\05_ML_DL\Spatial_CV\Buffered_500m\Fold_5\Fold_5_TEST.csv
+fold_train_buffered    |   1207 rows | D:\NISAR_Mangrove_Paper\05_ML_DL\Spatial_CV\Buffered_500m\Fold_1\Fold_1_TRAIN_BUFFERED_500m.csv
+fold_train_buffered    |   1162 rows | D:\NISAR_Mangrove_Paper\05_ML_DL\Spatial_CV\Buffered_500m\Fold_2\Fold_2_TRAIN_BUFFERED_500m.csv
+fold_train_buffered    |   1211 rows | D:\NISAR_Mangrove_Paper\05_ML_DL\Spatial_CV\Buffered_500m\Fold_3\Fold_3_TRAIN_BUFFERED_500m.csv
+fold_train_buffered    |   1223 rows | D:\NISAR_Mangrove_Paper\05_ML_DL\Spatial_CV\Buffered_500m\Fold_4\Fold_4_TRAIN_BUFFERED_500m.csv
+fold_train_buffered    |   1213 rows | D:\NISAR_Mangrove_Paper\05_ML_DL\Spatial_CV\Buffered_500m\Fold_5\Fold_5_TRAIN_BUFFERED_500m.csv
+
+ORIGINAL TRAIN/TEST FOLD CHECKS
+------------------------------------------------------------------------------------------
+ fold                                                                        test_file  n_test                                                                                      train_file  n_train_buffered  train_test_shot_overlap
+    1 D:\NISAR_Mangrove_Paper\05_ML_DL\Spatial_CV\Buffered_500m\Fold_1\Fold_1_TEST.csv     328 D:\NISAR_Mangrove_Paper\05_ML_DL\Spatial_CV\Buffered_500m\Fold_1\Fold_1_TRAIN_BUFFERED_500m.csv              1207                        0
+    2 D:\NISAR_Mangrove_Paper\05_ML_DL\Spatial_CV\Buffered_500m\Fold_2\Fold_2_TEST.csv     335 D:\NISAR_Mangrove_Paper\05_ML_DL\Spatial_CV\Buffered_500m\Fold_2\Fold_2_TRAIN_BUFFERED_500m.csv              1162                        0
+    3 D:\NISAR_Mangrove_Paper\05_ML_DL\Spatial_CV\Buffered_500m\Fold_3\Fold_3_TEST.csv     325 D:\NISAR_Mangrove_Paper\05_ML_DL\Spatial_CV\Buffered_500m\Fold_3\Fold_3_TRAIN_BUFFERED_500m.csv              1211                        0
+    4 D:\NISAR_Mangrove_Paper\05_ML_DL\Spatial_CV\Buffered_500m\Fold_4\Fold_4_TEST.csv     329 D:\NISAR_Mangrove_Paper\05_ML_DL\Spatial_CV\Buffered_500m\Fold_4\Fold_4_TRAIN_BUFFERED_500m.csv              1223                        0
+    5 D:\NISAR_Mangrove_Paper\05_ML_DL\Spatial_CV\Buffered_500m\Fold_5\Fold_5_TEST.csv     324 D:\NISAR_Mangrove_Paper\05_ML_DL\Spatial_CV\Buffered_500m\Fold_5\Fold_5_TRAIN_BUFFERED_500m.csv              1213                        0
+
+TEST-FOLD UNION CHECK
+------------------------------------------------------------------------------------------
+Frozen shots: 1641
+Union of located test shots: 1641
+Test union exactly matches frozen 1641 shots: True
+Test IDs appearing in more than one outer fold: 0
+
+OOF FILE CHECKS
+------------------------------------------------------------------------------------------
+{
+  "file": "D:\\NISAR_Mangrove_Paper\\06_Results\\Predictor_Expansion\\Phase8C4_Expanded9P\\Tables\\expanded9P_OOF_predictions.csv",
+  "rows": 4923,
+  "has_shot_number": true,
+  "has_fold": false,
+  "unique_shots": 1641,
+  "matches_frozen_shots": true
+}
+{
+  "file": "D:\\NISAR_Mangrove_Paper\\06_Results\\Extra_Trees\\Tables\\ET_OOF_predictions.csv",
+  "rows": 3282,
+  "has_shot_number": true,
+  "has_fold": true,
+  "unique_shots": 1641,
+  "matches_frozen_shots": true
+}
+
+SELECTED HYPERPARAMETERS / SAVED SUMMARY TABLES
+------------------------------------------------------------------------------------------
+
+FILE: ET9P_reproduction_audit.csv
+PATH: D:\NISAR_Mangrove_Paper\06_Results\Predictor_Expansion\Phase9_ET9P_Final_Defensibility\QC\ET9P_reproduction_audit.csv
+ outer_fold  train_n  test_n  baseline_RMSE_recomputed  max_abs_prediction_diff_vs_saved_OOF
+          1     1207     328                 39.586502                          7.105427e-15
+          2     1162     335                 40.172841                          7.105427e-15
+          3     1211     325                 38.791807                          7.105427e-15
+          4     1223     329                 39.366025                          7.105427e-15
+          5     1213     324                 40.886645                          7.105427e-15
+
+FILE: ET3P_ET9P_core_metrics.csv
+PATH: D:\NISAR_Mangrove_Paper\06_Results\Predictor_Expansion\Phase9_ET9P_Final_Defensibility\Tables\ET3P_ET9P_core_metrics.csv
+model      RMSE       MAE       R2  predicted_SD  observed_SD  pred_to_obs_SD_ratio
+ET_3P 41.262069 34.980262 0.012656      4.618342    41.538346              0.111183
+ET_9P 39.767698 33.099059 0.082878     10.443421    41.538346              0.251416
+
+FILE: ET9P_vs_ET3P_fold_comparison.csv
+PATH: D:\NISAR_Mangrove_Paper\06_Results\Predictor_Expansion\Phase9_ET9P_Final_Defensibility\Tables\ET9P_vs_ET3P_fold_comparison.csv
+ outer_fold   n  old_RMSE  new_RMSE  delta_RMSE_new_minus_old   old_MAE   new_MAE  delta_MAE_new_minus_old   old_R2   new_R2
+          1 328 41.279743 39.586502                 -1.693241 35.697793 33.358509                -2.339283 0.022875 0.101392
+          2 335 41.850538 40.172841                 -1.677697 34.579725 32.585407                -1.994318 0.019480 0.096518
+          3 325 40.688169 38.791807                 -1.896362 34.775182 32.668780                -2.106401 0.003779 0.094477
+          4 329 40.651211 39.366025                 -1.285186 34.426141 32.622252                -1.803889 0.008382 0.070091
+          5 324 41.815040 40.886645                 -0.928396 35.436396 34.283268                -1.153128 0.005244 0.048926
+
+FILE: expanded9P_selected_hyperparameters.csv
+PATH: D:\NISAR_Mangrove_Paper\06_Results\Predictor_Expansion\Phase8C4_Expanded9P\Tables\expanded9P_selected_hyperparameters.csv
+ outer_fold           model  best_inner_RMSE                                                                                                                best_params_json
+          1  EXPANDED_ET_9P        40.252378 {"bootstrap": false, "max_depth": 6, "max_features": 1.0, "min_samples_leaf": 10, "min_samples_split": 10, "n_estimators": 400}
+          1 EXPANDED_MLP_9P        40.374273                                  {"activation": "tanh", "alpha": 1.0, "hidden_layer_sizes": [32], "learning_rate_init": 0.0005}
+          2  EXPANDED_ET_9P        39.518686  {"bootstrap": false, "max_depth": 6, "max_features": 0.8, "min_samples_leaf": 10, "min_samples_split": 2, "n_estimators": 700}
+          2 EXPANDED_MLP_9P        39.860336                                  {"activation": "tanh", "alpha": 1.0, "hidden_layer_sizes": [32], "learning_rate_init": 0.0005}
+          3  EXPANDED_ET_9P        40.164181   {"bootstrap": true, "max_depth": 6, "max_features": 1.0, "min_samples_leaf": 1, "min_samples_split": 10, "n_estimators": 700}
+          3 EXPANDED_MLP_9P        40.803544                                  {"activation": "relu", "alpha": 0.1, "hidden_layer_sizes": [32], "learning_rate_init": 0.0005}
+          4  EXPANDED_ET_9P        40.226271   {"bootstrap": true, "max_depth": 6, "max_features": 0.8, "min_samples_leaf": 1, "min_samples_split": 20, "n_estimators": 400}
+          4 EXPANDED_MLP_9P        40.558372                                {"activation": "relu", "alpha": 0.001, "hidden_layer_sizes": [64], "learning_rate_init": 0.0005}
+          5  EXPANDED_ET_9P        39.558295 {"bootstrap": false, "max_depth": 6, "max_features": 1.0, "min_samples_leaf": 6, "min_samples_split": 10, "n_estimators": 1000}
+          5 EXPANDED_MLP_9P        39.756511                                {"activation": "tanh", "alpha": 0.001, "hidden_layer_sizes": [32], "learning_rate_init": 0.0005}
+
+==========================================================================================
+END OF C1 DEPENDENCY AUDIT
+==========================================================================================

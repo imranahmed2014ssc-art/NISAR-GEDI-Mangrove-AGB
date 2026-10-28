@@ -1,0 +1,2723 @@
+====================================================================================================
+C1 HISTORICAL MODEL / TUNING SPECIFICATION AUDIT
+====================================================================================================
+
+
+====================================================================================================
+FILE: D:\NISAR_Mangrove_Paper\05_ML_DL\RF\phase7b_random_forest.py
+====================================================================================================
+
+IMPORTS
+----------------------------------------------------------------------------------------------------
+   1: from pathlib import Path
+   2: from datetime import datetime
+   3: import hashlib
+   4: import json
+   5: import sys
+   6: import warnings
+   8: import numpy as np
+   9: import pandas as pd
+  10: from scipy.stats import pearsonr
+  11: from sklearn.ensemble import RandomForestRegressor
+  12: from sklearn.model_selection import GroupKFold, RandomizedSearchCV
+  13: from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+  14: from sklearn.inspection import permutation_importance
+  15: import matplotlib.pyplot as plt
+
+GLOBAL SETTINGS / PARAMETER SPACES
+----------------------------------------------------------------------------------------------------
+  36: FEATURE_SETS = {
+  37:     "RF_4P_MAIN": ["HH_dB", "HV_dB", "HH_minus_HV", "HV_SD"],
+  38:     "RF_3P_SENSITIVITY": ["HH_dB", "HV_dB", "HV_SD"],
+  39: }
+
+  42: N_INNER_FOLDS = 4
+
+  43: RANDOM_SEED = 42
+
+  44: N_SEARCH_ITER = 18
+
+  54: PARAM_DISTRIBUTIONS = {
+  55:     "n_estimators": [300, 500, 700, 900],
+  56:     "max_depth": [None, 8, 12, 18, 24],
+  57:     "min_samples_split": [2, 5, 10],
+  58:     "min_samples_leaf": [1, 2, 4, 6],
+  59:     "max_features": ["sqrt", 0.6, 0.8, 1.0],
+  60:     "bootstrap": [True],
+  61: }
+
+
+RELEVANT FUNCTIONS
+----------------------------------------------------------------------------------------------------
+
+FUNCTION: calc_metrics
+  81: def calc_metrics(y_true, y_pred):
+  82:     rmse = float(np.sqrt(mean_squared_error(y_true, y_pred)))
+  83:     mae = float(mean_absolute_error(y_true, y_pred))
+  84:     r2 = float(r2_score(y_true, y_pred))
+  85:     bias = float(np.mean(y_pred - y_true))
+  86:     obs_mean = float(np.mean(y_true))
+  87:     nrmse = float(100.0 * rmse / obs_mean) if obs_mean != 0 else np.nan
+  88: 
+  89:     if len(y_true) > 1 and np.std(y_true) > 0 and np.std(y_pred) > 0:
+  90:         r = float(pearsonr(y_true, y_pred).statistic)
+  91:     else:
+  92:         r = np.nan
+  93: 
+  94:     return {
+  95:         "RMSE_Mg_ha": rmse,
+  96:         "MAE_Mg_ha": mae,
+  97:         "R2": r2,
+  98:         "Bias_Mg_ha": bias,
+  99:         "nRMSE_percent_of_mean": nrmse,
+ 100:         "Pearson_r": r,
+ 101:     }
+
+
+FUNCTION: fit_one_outer_fold
+ 114: def fit_one_outer_fold(model_name, features, fold, train, test):
+ 115:     X_train = train[features].to_numpy(dtype=float)
+ 116:     y_train = train[RESPONSE].to_numpy(dtype=float)
+ 117:     X_test = test[features].to_numpy(dtype=float)
+ 118:     y_test = test[RESPONSE].to_numpy(dtype=float)
+ 119: 
+ 120:     groups = train["cv_block_id"].astype(str).to_numpy()
+ 121:     unique_groups = np.unique(groups)
+ 122: 
+ 123:     if len(unique_groups) < N_INNER_FOLDS:
+ 124:         raise RuntimeError(
+ 125:             f"Fold {fold} {model_name}: only {len(unique_groups)} inner groups; "
+ 126:             f"cannot make {N_INNER_FOLDS} GroupKFold splits."
+ 127:         )
+ 128: 
+ 129:     inner_cv = GroupKFold(n_splits=N_INNER_FOLDS)
+ 130: 
+ 131:     base_rf = RandomForestRegressor(
+ 132:         random_state=RANDOM_SEED,
+ 133:         n_jobs=N_JOBS,
+ 134:         criterion="squared_error",
+ 135:     )
+ 136: 
+ 137:     search = RandomizedSearchCV(
+ 138:         estimator=base_rf,
+ 139:         param_distributions=PARAM_DISTRIBUTIONS,
+ 140:         n_iter=N_SEARCH_ITER,
+ 141:         scoring="neg_root_mean_squared_error",
+ 142:         cv=inner_cv,
+ 143:         random_state=RANDOM_SEED,
+ 144:         n_jobs=N_JOBS,
+ 145:         refit=True,
+ 146:         return_train_score=False,
+ 147:         verbose=0,
+ 148:     )
+ 149: 
+ 150:     search.fit(X_train, y_train, groups=groups)
+ 151: 
+ 152:     best = search.best_estimator_
+ 153:     pred = best.predict(X_test)
+ 154: 
+ 155:     m = calc_metrics(y_test, pred)
+ 156:     m.update({
+ 157:         "model": model_name,
+ 158:         "fold": fold,
+ 159:         "train_n": len(train),
+ 160:         "test_n": len(test),
+ 161:         "inner_groups_n": len(unique_groups),
+ 162:         "inner_best_RMSE_Mg_ha": float(-search.best_score_),
+ 163:     })
+ 164: 
+ 165:     # Standard RF impurity importance.
+ 166:     impurity = pd.DataFrame({
+ 167:         "model": model_name,
+ 168:         "fold": fold,
+ 169:         "predictor": features,
+ 170:         "importance_type": "impurity",
+ 171:         "importance": best.feature_importances_,
+ 172:     })
+ 173: 
+ 174:     # Test-fold permutation importance is descriptive only.
+ 175:     # It is NOT used for tuning or feature selection.
+ 176:     with warnings.catch_warnings():
+ 177:         warnings.simplefilter("ignore")
+ 178:         pi = permutation_importance(
+ 179:             best,
+ 180:             X_test,
+ 181:             y_test,
+ 182:             scoring="neg_root_mean_squared_error",
+ 183:             n_repeats=20,
+ 184:             random_state=RANDOM_SEED,
+ 185:             n_jobs=N_JOBS,
+ 186:         )
+ 187: 
+ 188:     perm = pd.DataFrame({
+ 189:         "model": model_name,
+ 190:         "fold": fold,
+ 191:         "predictor": features,
+ 192:         "importance_type": "permutation_RMSE_increase",
+ 193:         "importance": pi.importances_mean,
+ 194:         "importance_sd": pi.importances_std,
+ 195:     })
+ 196: 
+ 197:     params = {
+ 198:         "model": model_name,
+ 199:         "fold": fold,
+ 200:         "best_inner_RMSE_Mg_ha": float(-search.best_score_),
+ 201:         **{f"param_{k}": v for k, v in search.best_params_.items()}
+ 202:     }
+ 203: 
+ 204:     pred_df = test.copy()
+ 205:     pred_df["outer_fold"] = fold
+ 206:     pred_df["model"] = model_name
+ 207:     pred_df["observed_agbd"] = y_test
+ 208:     pred_df["predicted_agbd"] = pred
+ 209:     pred_df["residual_observed_minus_predicted"] = y_test - pred
+ 210: 
+ 211:     return m, impurity, perm, params, pred_df, best
+
+
+FUNCTION: pooled_metrics_from_oof
+ 218: def pooled_metrics_from_oof(oof):
+ 219:     rows = []
+ 220:     for model_name, g in oof.groupby("model"):
+ 221:         m = calc_metrics(
+ 222:             g["observed_agbd"].to_numpy(dtype=float),
+ 223:             g["predicted_agbd"].to_numpy(dtype=float)
+ 224:         )
+ 225:         m.update({
+ 226:             "model": model_name,
+ 227:             "evaluation": "pooled_out_of_fold",
+ 228:             "n": len(g),
+ 229:         })
+ 230:         rows.append(m)
+ 231:     return pd.DataFrame(rows)
+
+
+FUNCTION: fold_metric_summary
+ 233: def fold_metric_summary(fold_metrics):
+ 234:     rows = []
+ 235:     for model_name, g in fold_metrics.groupby("model"):
+ 236:         for stat_name, func in [("mean_across_folds", "mean"), ("sd_across_folds", "std")]:
+ 237:             row = {
+ 238:                 "model": model_name,
+ 239:                 "evaluation": stat_name,
+ 240:                 "n": int(g["test_n"].sum()),
+ 241:             }
+ 242:             for c in ["RMSE_Mg_ha", "MAE_Mg_ha", "R2", "Bias_Mg_ha",
+ 243:                       "nRMSE_percent_of_mean", "Pearson_r", "inner_best_RMSE_Mg_ha"]:
+ 244:                 if func == "mean":
+ 245:                     row[c] = float(g[c].mean())
+ 246:                 else:
+ 247:                     row[c] = float(g[c].std(ddof=1))
+ 248:             rows.append(row)
+ 249:     return pd.DataFrame(rows)
+
+
+MODEL / CV / SEARCH CONTEXT
+----------------------------------------------------------------------------------------------------
+   6: import warnings
+   7: 
+   8: import numpy as np
+   9: import pandas as pd
+  10: from scipy.stats import pearsonr
+  11: from sklearn.ensemble import RandomForestRegressor
+  12: from sklearn.model_selection import GroupKFold, RandomizedSearchCV
+  13: from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+  14: from sklearn.inspection import permutation_importance
+  15: import matplotlib.pyplot as plt
+  16: 
+  17: # ============================================================
+  18: # PROJECT SETTINGS
+  19: # ============================================================
+  20: PROJECT_ROOT = Path(r"D:\NISAR_Mangrove_Paper")
+  21: 
+  22: BUFFER_ROOT = (
+    ...
+ 121:     unique_groups = np.unique(groups)
+ 122: 
+ 123:     if len(unique_groups) < N_INNER_FOLDS:
+ 124:         raise RuntimeError(
+ 125:             f"Fold {fold} {model_name}: only {len(unique_groups)} inner groups; "
+ 126:             f"cannot make {N_INNER_FOLDS} GroupKFold splits."
+ 127:         )
+ 128: 
+ 129:     inner_cv = GroupKFold(n_splits=N_INNER_FOLDS)
+ 130: 
+ 131:     base_rf = RandomForestRegressor(
+ 132:         random_state=RANDOM_SEED,
+ 133:         n_jobs=N_JOBS,
+ 134:         criterion="squared_error",
+ 135:     )
+ 136: 
+ 137:     search = RandomizedSearchCV(
+ 138:         estimator=base_rf,
+ 139:         param_distributions=PARAM_DISTRIBUTIONS,
+ 140:         n_iter=N_SEARCH_ITER,
+ 141:         scoring="neg_root_mean_squared_error",
+ 142:         cv=inner_cv,
+ 143:         random_state=RANDOM_SEED,
+ 144:         n_jobs=N_JOBS,
+ 145:         refit=True,
+ 146:         return_train_score=False,
+ 147:         verbose=0,
+    ...
+ 397: def main():
+ 398:     print("=" * 72)
+ 399:     print("PHASE 7B — RANDOM FOREST")
+ 400:     print("=" * 72)
+ 401:     print("Outer validation: frozen 5-fold spatial CV + 500 m training buffer")
+ 402:     print(f"Inner tuning: {N_INNER_FOLDS}-fold GroupKFold by 3 km cv_block_id")
+ 403:     print(f"Randomized search iterations: {N_SEARCH_ITER}")
+ 404:     print(f"Random seed: {RANDOM_SEED}")
+ 405: 
+ 406:     fold_metrics_all = []
+ 407:     impurity_all = []
+ 408:     perm_all = []
+ 409:     best_params_all = []
+ 410:     oof_all = []
+ 411:     provenance_all = []
+ 412: 
+    ...
+ 499: 
+ 500:     report = [
+ 501:         "PHASE 7B — RANDOM FOREST",
+ 502:         "=" * 72,
+ 503:         "Outer validation: frozen 5-fold spatial block CV with 500 m training exclusion buffer.",
+ 504:         f"Inner tuning: {N_INNER_FOLDS}-fold GroupKFold grouped by cv_block_id.",
+ 505:         f"Randomized search iterations per outer fold: {N_SEARCH_ITER}.",
+ 506:         f"Random seed: {RANDOM_SEED}.",
+ 507:         "",
+ 508:         "Primary RF model:",
+ 509:         "RF_4P_MAIN = HH_dB + HV_dB + HH_minus_HV + HV_SD",
+ 510:         "",
+ 511:         "Sensitivity RF model:",
+ 512:         "RF_3P_SENSITIVITY = HH_dB + HV_dB + HV_SD",
+ 513:         "",
+ 514:         "Pooled out-of-fold performance:",
+    ...
+ 534: 
+ 535:     append_log([
+ 536:         "Script: phase7b_random_forest.py",
+ 537:         "Primary model: RF_4P_MAIN = HH_dB + HV_dB + HH_minus_HV + HV_SD",
+ 538:         "Sensitivity model: RF_3P_SENSITIVITY = HH_dB + HV_dB + HV_SD",
+ 539:         f"Inner tuning: {N_INNER_FOLDS}-fold GroupKFold by cv_block_id",
+ 540:         f"Randomized search iterations per outer fold: {N_SEARCH_ITER}",
+ 541:         f"Random seed: {RANDOM_SEED}",
+ 542:         f"RF_4P pooled OOF RMSE: {main_row['RMSE_Mg_ha']:.4f} Mg/ha",
+ 543:         f"RF_4P pooled OOF MAE: {main_row['MAE_Mg_ha']:.4f} Mg/ha",
+ 544:         f"RF_4P pooled OOF R2: {main_row['R2']:.6f}",
+ 545:         f"RF_4P pooled OOF Pearson r: {main_row['Pearson_r']:.6f}",
+ 546:         f"RF_3P pooled OOF RMSE: {sens_row['RMSE_Mg_ha']:.4f} Mg/ha",
+ 547:         f"RF_3P pooled OOF R2: {sens_row['R2']:.6f}",
+ 548:     ])
+ 549: 
+
+
+====================================================================================================
+FILE: D:\NISAR_Mangrove_Paper\05_ML_DL\XGBoost\phase7c_xgboost.py
+====================================================================================================
+
+IMPORTS
+----------------------------------------------------------------------------------------------------
+   1: from pathlib import Path
+   2: from datetime import datetime
+   3: import hashlib
+   4: import json
+   5: import sys
+   6: import warnings
+   8: import numpy as np
+   9: import pandas as pd
+  10: from scipy.stats import pearsonr
+  11: from sklearn.model_selection import GroupKFold, RandomizedSearchCV
+  12: from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+  13: from sklearn.inspection import permutation_importance
+  14: import matplotlib.pyplot as plt
+  15: import joblib
+  16: import xgboost as xgb
+  17: from xgboost import XGBRegressor
+
+GLOBAL SETTINGS / PARAMETER SPACES
+----------------------------------------------------------------------------------------------------
+  38: FEATURE_SETS = {
+  39:     "XGB_4P_MAIN": ["HH_dB", "HV_dB", "HH_minus_HV", "HV_SD"],
+  40:     "XGB_3P_SENSITIVITY": ["HH_dB", "HV_dB", "HV_SD"],
+  41: }
+
+  44: N_INNER_FOLDS = 4
+
+  45: RANDOM_SEED = 42
+
+  46: N_SEARCH_ITER = 12
+
+  47: N_JOBS_SEARCH = -1
+
+  56: PARAM_DISTRIBUTIONS = {
+  57:     "n_estimators": [200, 350, 500, 700],
+  58:     "learning_rate": [0.02, 0.05, 0.08, 0.10],
+  59:     "max_depth": [2, 3, 4, 5],
+  60:     "min_child_weight": [1, 3, 5, 10],
+  61:     "subsample": [0.70, 0.85, 1.00],
+  62:     "colsample_bytree": [0.70, 0.85, 1.00],
+  63:     "reg_alpha": [0.0, 0.1, 0.5, 1.0],
+  64:     "reg_lambda": [1.0, 2.0, 5.0, 10.0],
+  65:     "gamma": [0.0, 0.1, 0.5],
+  66: }
+
+
+RELEVANT FUNCTIONS
+----------------------------------------------------------------------------------------------------
+
+FUNCTION: calc_metrics
+  86: def calc_metrics(y_true, y_pred):
+  87:     rmse = float(np.sqrt(mean_squared_error(y_true, y_pred)))
+  88:     mae = float(mean_absolute_error(y_true, y_pred))
+  89:     r2 = float(r2_score(y_true, y_pred))
+  90:     bias = float(np.mean(y_pred - y_true))
+  91:     obs_mean = float(np.mean(y_true))
+  92:     nrmse = float(100.0 * rmse / obs_mean) if obs_mean != 0 else np.nan
+  93: 
+  94:     if len(y_true) > 1 and np.std(y_true) > 0 and np.std(y_pred) > 0:
+  95:         r = float(pearsonr(y_true, y_pred).statistic)
+  96:     else:
+  97:         r = np.nan
+  98: 
+  99:     return {
+ 100:         "RMSE_Mg_ha": rmse,
+ 101:         "MAE_Mg_ha": mae,
+ 102:         "R2": r2,
+ 103:         "Bias_Mg_ha": bias,
+ 104:         "nRMSE_percent_of_mean": nrmse,
+ 105:         "Pearson_r": r,
+ 106:     }
+
+
+FUNCTION: fit_one_outer_fold
+ 119: def fit_one_outer_fold(model_name, features, fold, train, test):
+ 120:     X_train = train[features].to_numpy(dtype=float)
+ 121:     y_train = train[RESPONSE].to_numpy(dtype=float)
+ 122:     X_test = test[features].to_numpy(dtype=float)
+ 123:     y_test = test[RESPONSE].to_numpy(dtype=float)
+ 124: 
+ 125:     groups = train["cv_block_id"].astype(str).to_numpy()
+ 126:     unique_groups = np.unique(groups)
+ 127: 
+ 128:     if len(unique_groups) < N_INNER_FOLDS:
+ 129:         raise RuntimeError(
+ 130:             f"Fold {fold} {model_name}: only {len(unique_groups)} inner groups; "
+ 131:             f"cannot make {N_INNER_FOLDS} GroupKFold splits."
+ 132:         )
+ 133: 
+ 134:     inner_cv = GroupKFold(n_splits=N_INNER_FOLDS)
+ 135: 
+ 136:     base_xgb = XGBRegressor(
+ 137:         objective="reg:squarederror",
+ 138:         eval_metric="rmse",
+ 139:         tree_method="hist",
+ 140:         random_state=RANDOM_SEED,
+ 141:         n_jobs=1,  # avoid CPU oversubscription inside parallelized search
+ 142:         verbosity=0,
+ 143:     )
+ 144: 
+ 145:     search = RandomizedSearchCV(
+ 146:         estimator=base_xgb,
+ 147:         param_distributions=PARAM_DISTRIBUTIONS,
+ 148:         n_iter=N_SEARCH_ITER,
+ 149:         scoring="neg_root_mean_squared_error",
+ 150:         cv=inner_cv,
+ 151:         random_state=RANDOM_SEED,
+ 152:         n_jobs=N_JOBS_SEARCH,
+ 153:         refit=True,
+ 154:         return_train_score=False,
+ 155:         verbose=0,
+ 156:     )
+ 157: 
+ 158:     search.fit(X_train, y_train, groups=groups)
+ 159: 
+ 160:     best = search.best_estimator_
+ 161:     pred = best.predict(X_test)
+ 162: 
+ 163:     m = calc_metrics(y_test, pred)
+ 164:     m.update({
+ 165:         "model": model_name,
+ 166:         "fold": fold,
+ 167:         "train_n": len(train),
+ 168:         "test_n": len(test),
+ 169:         "inner_groups_n": len(unique_groups),
+ 170:         "inner_best_RMSE_Mg_ha": float(-search.best_score_),
+ 171:     })
+ 172: 
+ 173:     # Built-in XGBoost importance from fitted estimator.
+ 174:     gain_like = pd.DataFrame({
+ 175:         "model": model_name,
+ 176:         "fold": fold,
+ 177:         "predictor": features,
+ 178:         "importance_type": "xgb_feature_importance",
+ 179:         "importance": best.feature_importances_,
+ 180:     })
+ 181: 
+ 182:     # Outer-test permutation importance is DESCRIPTIVE only.
+ 183:     # It is not used in model tuning or feature selection.
+ 184:     with warnings.catch_warnings():
+ 185:         warnings.simplefilter("ignore")
+ 186:         pi = permutation_importance(
+ 187:             best,
+ 188:             X_test,
+ 189:             y_test,
+ 190:             scoring="neg_root_mean_squared_error",
+ 191:             n_repeats=20,
+ 192:             random_state=RANDOM_SEED,
+ 193:             n_jobs=-1,
+ 194:         )
+ 195: 
+ 196:     perm = pd.DataFrame({
+ 197:         "model": model_name,
+ 198:         "fold": fold,
+ 199:         "predictor": features,
+ 200:         "importance_type": "permutation_RMSE_increase",
+ 201:         "importance": pi.importances_mean,
+ 202:         "importance_sd": pi.importances_std,
+ 203:     })
+ 204: 
+ 205:     params = {
+ 206:         "model": model_name,
+ 207:         "fold": fold,
+ 208:         "best_inner_RMSE_Mg_ha": float(-search.best_score_),
+ 209:         **{f"param_{k}": v for k, v in search.best_params_.items()}
+ 210:     }
+ 211: 
+ 212:     pred_df = test.copy()
+ 213:     pred_df["outer_fold"] = fold
+ 214:     pred_df["model"] = model_name
+ 215:     pred_df["observed_agbd"] = y_test
+ 216:     pred_df["predicted_agbd"] = pred
+ 217:     pred_df["residual_observed_minus_predicted"] = y_test - pred
+ 218: 
+ 219:     return m, gain_like, perm, params, pred_df, best
+
+
+FUNCTION: pooled_metrics_from_oof
+ 221: def pooled_metrics_from_oof(oof):
+ 222:     rows = []
+ 223:     for model_name, g in oof.groupby("model"):
+ 224:         m = calc_metrics(
+ 225:             g["observed_agbd"].to_numpy(dtype=float),
+ 226:             g["predicted_agbd"].to_numpy(dtype=float)
+ 227:         )
+ 228:         m.update({
+ 229:             "model": model_name,
+ 230:             "evaluation": "pooled_out_of_fold",
+ 231:             "n": len(g),
+ 232:         })
+ 233:         rows.append(m)
+ 234:     return pd.DataFrame(rows)
+
+
+FUNCTION: fold_metric_summary
+ 236: def fold_metric_summary(fold_metrics):
+ 237:     rows = []
+ 238:     metric_cols = [
+ 239:         "RMSE_Mg_ha", "MAE_Mg_ha", "R2", "Bias_Mg_ha",
+ 240:         "nRMSE_percent_of_mean", "Pearson_r", "inner_best_RMSE_Mg_ha"
+ 241:     ]
+ 242:     for model_name, g in fold_metrics.groupby("model"):
+ 243:         row_mean = {
+ 244:             "model": model_name,
+ 245:             "evaluation": "mean_across_folds",
+ 246:             "n": int(g["test_n"].sum()),
+ 247:         }
+ 248:         row_sd = {
+ 249:             "model": model_name,
+ 250:             "evaluation": "sd_across_folds",
+ 251:             "n": int(g["test_n"].sum()),
+ 252:         }
+ 253:         for c in metric_cols:
+ 254:             row_mean[c] = float(g[c].mean())
+ 255:             row_sd[c] = float(g[c].std(ddof=1))
+ 256:         rows.extend([row_mean, row_sd])
+ 257:     return pd.DataFrame(rows)
+
+
+MODEL / CV / SEARCH CONTEXT
+----------------------------------------------------------------------------------------------------
+   6: import warnings
+   7: 
+   8: import numpy as np
+   9: import pandas as pd
+  10: from scipy.stats import pearsonr
+  11: from sklearn.model_selection import GroupKFold, RandomizedSearchCV
+  12: from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+  13: from sklearn.inspection import permutation_importance
+  14: import matplotlib.pyplot as plt
+  15: import joblib
+  16: import xgboost as xgb
+  17: from xgboost import XGBRegressor
+  18: 
+  19: # ============================================================
+  20: # PROJECT SETTINGS
+  21: # ============================================================
+  22: PROJECT_ROOT = Path(r"D:\NISAR_Mangrove_Paper")
+  23: 
+  24: BUFFER_ROOT = (
+  25:     PROJECT_ROOT
+  26:     / "05_ML_DL"
+  27:     / "Spatial_CV"
+    ...
+  60:     "min_child_weight": [1, 3, 5, 10],
+  61:     "subsample": [0.70, 0.85, 1.00],
+  62:     "colsample_bytree": [0.70, 0.85, 1.00],
+  63:     "reg_alpha": [0.0, 0.1, 0.5, 1.0],
+  64:     "reg_lambda": [1.0, 2.0, 5.0, 10.0],
+  65:     "gamma": [0.0, 0.1, 0.5],
+  66: }
+  67: 
+  68: # ============================================================
+  69: # HELPERS
+  70: # ============================================================
+  71: def sha256_file(path):
+  72:     h = hashlib.sha256()
+  73:     with open(path, "rb") as f:
+  74:         for chunk in iter(lambda: f.read(1024 * 1024), b""):
+  75:             h.update(chunk)
+    ...
+ 126:     unique_groups = np.unique(groups)
+ 127: 
+ 128:     if len(unique_groups) < N_INNER_FOLDS:
+ 129:         raise RuntimeError(
+ 130:             f"Fold {fold} {model_name}: only {len(unique_groups)} inner groups; "
+ 131:             f"cannot make {N_INNER_FOLDS} GroupKFold splits."
+ 132:         )
+ 133: 
+ 134:     inner_cv = GroupKFold(n_splits=N_INNER_FOLDS)
+ 135: 
+ 136:     base_xgb = XGBRegressor(
+ 137:         objective="reg:squarederror",
+ 138:         eval_metric="rmse",
+ 139:         tree_method="hist",
+ 140:         random_state=RANDOM_SEED,
+ 141:         n_jobs=1,  # avoid CPU oversubscription inside parallelized search
+ 142:         verbosity=0,
+ 143:     )
+ 144: 
+ 145:     search = RandomizedSearchCV(
+ 146:         estimator=base_xgb,
+ 147:         param_distributions=PARAM_DISTRIBUTIONS,
+ 148:         n_iter=N_SEARCH_ITER,
+ 149:         scoring="neg_root_mean_squared_error",
+ 150:         cv=inner_cv,
+ 151:         random_state=RANDOM_SEED,
+ 152:         n_jobs=N_JOBS_SEARCH,
+ 153:         refit=True,
+ 154:         return_train_score=False,
+ 155:         verbose=0,
+    ...
+ 421:     print("=" * 72)
+ 422:     print("PHASE 7C — XGBOOST")
+ 423:     print("=" * 72)
+ 424:     print(f"XGBoost version: {xgb.__version__}")
+ 425:     print("Outer validation: frozen 5-fold spatial CV + 500 m training buffer")
+ 426:     print(f"Inner tuning: {N_INNER_FOLDS}-fold GroupKFold by 3 km cv_block_id")
+ 427:     print(f"Randomized search iterations: {N_SEARCH_ITER}")
+ 428:     print(f"Random seed: {RANDOM_SEED}")
+ 429: 
+ 430:     fold_metrics_all = []
+ 431:     built_in_all = []
+ 432:     perm_all = []
+ 433:     best_params_all = []
+ 434:     oof_all = []
+ 435:     provenance_all = []
+ 436: 
+    ...
+ 536:     report = [
+ 537:         "PHASE 7C — XGBOOST",
+ 538:         "=" * 72,
+ 539:         f"XGBoost version: {xgb.__version__}",
+ 540:         "Outer validation: frozen 5-fold spatial block CV with 500 m training exclusion buffer.",
+ 541:         f"Inner tuning: {N_INNER_FOLDS}-fold GroupKFold grouped by cv_block_id.",
+ 542:         f"Randomized search iterations per outer fold: {N_SEARCH_ITER}.",
+ 543:         f"Random seed: {RANDOM_SEED}.",
+ 544:         "",
+ 545:         "Primary XGBoost model:",
+ 546:         "XGB_4P_MAIN = HH_dB + HV_dB + HH_minus_HV + HV_SD",
+ 547:         "",
+ 548:         "Sensitivity XGBoost model:",
+ 549:         "XGB_3P_SENSITIVITY = HH_dB + HV_dB + HV_SD",
+ 550:         "",
+ 551:         "Pooled out-of-fold performance:",
+    ...
+ 572:     append_log([
+ 573:         "Script: phase7c_xgboost.py",
+ 574:         f"XGBoost version: {xgb.__version__}",
+ 575:         "Primary model: XGB_4P_MAIN = HH_dB + HV_dB + HH_minus_HV + HV_SD",
+ 576:         "Sensitivity model: XGB_3P_SENSITIVITY = HH_dB + HV_dB + HV_SD",
+ 577:         f"Inner tuning: {N_INNER_FOLDS}-fold GroupKFold by cv_block_id",
+ 578:         f"Randomized search iterations per outer fold: {N_SEARCH_ITER}",
+ 579:         f"Random seed: {RANDOM_SEED}",
+ 580:         f"XGB_4P pooled OOF RMSE: {main_row['RMSE_Mg_ha']:.4f} Mg/ha",
+ 581:         f"XGB_4P pooled OOF MAE: {main_row['MAE_Mg_ha']:.4f} Mg/ha",
+ 582:         f"XGB_4P pooled OOF R2: {main_row['R2']:.6f}",
+ 583:         f"XGB_4P pooled OOF Pearson r: {main_row['Pearson_r']:.6f}",
+ 584:         f"XGB_3P pooled OOF RMSE: {sens_row['RMSE_Mg_ha']:.4f} Mg/ha",
+ 585:         f"XGB_3P pooled OOF R2: {sens_row['R2']:.6f}",
+ 586:     ])
+ 587: 
+
+
+====================================================================================================
+FILE: D:\NISAR_Mangrove_Paper\05_ML_DL\SVR\phase7d_svr.py
+====================================================================================================
+
+IMPORTS
+----------------------------------------------------------------------------------------------------
+   1: from pathlib import Path
+   2: from datetime import datetime
+   3: import hashlib
+   4: import sys
+   5: import warnings
+   7: import numpy as np
+   8: import pandas as pd
+   9: from scipy.stats import pearsonr, loguniform
+  10: from sklearn.pipeline import Pipeline
+  11: from sklearn.preprocessing import StandardScaler
+  12: from sklearn.svm import SVR
+  13: from sklearn.model_selection import GroupKFold, RandomizedSearchCV
+  14: from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+  15: from sklearn.inspection import permutation_importance
+  16: import matplotlib.pyplot as plt
+  17: import joblib
+
+GLOBAL SETTINGS / PARAMETER SPACES
+----------------------------------------------------------------------------------------------------
+  36: FEATURE_SETS = {
+  37:     "SVR_4P_MAIN": ["HH_dB", "HV_dB", "HH_minus_HV", "HV_SD"],
+  38:     "SVR_3P_SENSITIVITY": ["HH_dB", "HV_dB", "HV_SD"],
+  39: }
+
+  42: N_INNER_FOLDS = 4
+
+  43: RANDOM_SEED = 42
+
+  44: N_SEARCH_ITER = 24
+
+  51: PARAM_DISTRIBUTIONS = {
+  52:     "svr__C": loguniform(1e-1, 1e3),
+  53:     "svr__epsilon": loguniform(1e-2, 2e1),
+  54:     "svr__gamma": loguniform(1e-3, 1e1),
+  55: }
+
+
+RELEVANT FUNCTIONS
+----------------------------------------------------------------------------------------------------
+
+FUNCTION: calc_metrics
+  72: def calc_metrics(y_true, y_pred):
+  73:     rmse = float(np.sqrt(mean_squared_error(y_true, y_pred)))
+  74:     mae = float(mean_absolute_error(y_true, y_pred))
+  75:     r2 = float(r2_score(y_true, y_pred))
+  76:     bias = float(np.mean(y_pred - y_true))
+  77:     mean_obs = float(np.mean(y_true))
+  78:     nrmse = float(100.0 * rmse / mean_obs) if mean_obs != 0 else np.nan
+  79:     if len(y_true) > 1 and np.std(y_true) > 0 and np.std(y_pred) > 0:
+  80:         r = float(pearsonr(y_true, y_pred).statistic)
+  81:     else:
+  82:         r = np.nan
+  83:     return {
+  84:         "RMSE_Mg_ha": rmse,
+  85:         "MAE_Mg_ha": mae,
+  86:         "R2": r2,
+  87:         "Bias_Mg_ha": bias,
+  88:         "nRMSE_percent_of_mean": nrmse,
+  89:         "Pearson_r": r,
+  90:     }
+
+
+FUNCTION: fit_one_fold
+ 103: def fit_one_fold(model_name, features, fold, train, test):
+ 104:     X_train = train[features].to_numpy(float)
+ 105:     y_train = train[RESPONSE].to_numpy(float)
+ 106:     X_test = test[features].to_numpy(float)
+ 107:     y_test = test[RESPONSE].to_numpy(float)
+ 108: 
+ 109:     groups = train["cv_block_id"].astype(str).to_numpy()
+ 110:     if len(np.unique(groups)) < N_INNER_FOLDS:
+ 111:         raise RuntimeError(f"Fold {fold}: not enough cv_block_id groups for inner CV.")
+ 112: 
+ 113:     pipe = Pipeline([
+ 114:         ("scaler", StandardScaler()),
+ 115:         ("svr", SVR(kernel="rbf")),
+ 116:     ])
+ 117: 
+ 118:     inner_cv = GroupKFold(n_splits=N_INNER_FOLDS)
+ 119: 
+ 120:     search = RandomizedSearchCV(
+ 121:         pipe,
+ 122:         PARAM_DISTRIBUTIONS,
+ 123:         n_iter=N_SEARCH_ITER,
+ 124:         scoring="neg_root_mean_squared_error",
+ 125:         cv=inner_cv,
+ 126:         random_state=RANDOM_SEED,
+ 127:         n_jobs=N_JOBS,
+ 128:         refit=True,
+ 129:         verbose=0,
+ 130:     )
+ 131:     search.fit(X_train, y_train, groups=groups)
+ 132: 
+ 133:     best = search.best_estimator_
+ 134:     pred = best.predict(X_test)
+ 135: 
+ 136:     m = calc_metrics(y_test, pred)
+ 137:     m.update({
+ 138:         "model": model_name,
+ 139:         "fold": fold,
+ 140:         "train_n": len(train),
+ 141:         "test_n": len(test),
+ 142:         "inner_groups_n": len(np.unique(groups)),
+ 143:         "inner_best_RMSE_Mg_ha": float(-search.best_score_),
+ 144:     })
+ 145: 
+ 146:     with warnings.catch_warnings():
+ 147:         warnings.simplefilter("ignore")
+ 148:         pi = permutation_importance(
+ 149:             best,
+ 150:             X_test,
+ 151:             y_test,
+ 152:             scoring="neg_root_mean_squared_error",
+ 153:             n_repeats=20,
+ 154:             random_state=RANDOM_SEED,
+ 155:             n_jobs=N_JOBS,
+ 156:         )
+ 157: 
+ 158:     perm = pd.DataFrame({
+ 159:         "model": model_name,
+ 160:         "fold": fold,
+ 161:         "predictor": features,
+ 162:         "mean_permutation_RMSE_increase": pi.importances_mean,
+ 163:         "sd_permutation_RMSE_increase": pi.importances_std,
+ 164:     })
+ 165: 
+ 166:     params = {
+ 167:         "model": model_name,
+ 168:         "fold": fold,
+ 169:         "best_inner_RMSE_Mg_ha": float(-search.best_score_),
+ 170:         **{k.replace("svr__", ""): v for k, v in search.best_params_.items()}
+ 171:     }
+ 172: 
+ 173:     pred_df = test.copy()
+ 174:     pred_df["outer_fold"] = fold
+ 175:     pred_df["model"] = model_name
+ 176:     pred_df["observed_agbd"] = y_test
+ 177:     pred_df["predicted_agbd"] = pred
+ 178:     pred_df["residual_observed_minus_predicted"] = y_test - pred
+ 179: 
+ 180:     return m, perm, params, pred_df, best
+
+
+FUNCTION: pooled_metrics
+ 182: def pooled_metrics(oof):
+ 183:     rows = []
+ 184:     for model_name, g in oof.groupby("model"):
+ 185:         m = calc_metrics(g["observed_agbd"].to_numpy(float), g["predicted_agbd"].to_numpy(float))
+ 186:         m.update({"model": model_name, "evaluation": "pooled_out_of_fold", "n": len(g)})
+ 187:         rows.append(m)
+ 188:     return pd.DataFrame(rows)
+
+
+MODEL / CV / SEARCH CONTEXT
+----------------------------------------------------------------------------------------------------
+   6: 
+   7: import numpy as np
+   8: import pandas as pd
+   9: from scipy.stats import pearsonr, loguniform
+  10: from sklearn.pipeline import Pipeline
+  11: from sklearn.preprocessing import StandardScaler
+  12: from sklearn.svm import SVR
+  13: from sklearn.model_selection import GroupKFold, RandomizedSearchCV
+  14: from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+  15: from sklearn.inspection import permutation_importance
+  16: import matplotlib.pyplot as plt
+  17: import joblib
+  18: 
+  19: PROJECT_ROOT = Path(r"D:\NISAR_Mangrove_Paper")
+  20: 
+  21: BUFFER_ROOT = (
+  22:     PROJECT_ROOT
+  23:     / "05_ML_DL"
+    ...
+  49: MODEL_DIR.mkdir(parents=True, exist_ok=True)
+  50: 
+  51: PARAM_DISTRIBUTIONS = {
+  52:     "svr__C": loguniform(1e-1, 1e3),
+  53:     "svr__epsilon": loguniform(1e-2, 2e1),
+  54:     "svr__gamma": loguniform(1e-3, 1e1),
+  55: }
+  56: 
+  57: def sha256_file(path):
+  58:     h = hashlib.sha256()
+  59:     with open(path, "rb") as f:
+  60:         for chunk in iter(lambda: f.read(1024 * 1024), b""):
+  61:             h.update(chunk)
+  62:     return h.hexdigest()
+  63: 
+  64: def append_log(lines):
+    ...
+ 109:     groups = train["cv_block_id"].astype(str).to_numpy()
+ 110:     if len(np.unique(groups)) < N_INNER_FOLDS:
+ 111:         raise RuntimeError(f"Fold {fold}: not enough cv_block_id groups for inner CV.")
+ 112: 
+ 113:     pipe = Pipeline([
+ 114:         ("scaler", StandardScaler()),
+ 115:         ("svr", SVR(kernel="rbf")),
+ 116:     ])
+ 117: 
+ 118:     inner_cv = GroupKFold(n_splits=N_INNER_FOLDS)
+ 119: 
+ 120:     search = RandomizedSearchCV(
+ 121:         pipe,
+ 122:         PARAM_DISTRIBUTIONS,
+ 123:         n_iter=N_SEARCH_ITER,
+ 124:         scoring="neg_root_mean_squared_error",
+ 125:         cv=inner_cv,
+ 126:         random_state=RANDOM_SEED,
+ 127:         n_jobs=N_JOBS,
+ 128:         refit=True,
+ 129:         verbose=0,
+ 130:     )
+    ...
+ 322: def main():
+ 323:     print("=" * 72)
+ 324:     print("PHASE 7D — SUPPORT VECTOR REGRESSION (RBF)")
+ 325:     print("=" * 72)
+ 326:     print("Outer validation: frozen 5-fold spatial CV + 500 m training buffer")
+ 327:     print(f"Inner tuning: {N_INNER_FOLDS}-fold GroupKFold by 3 km cv_block_id")
+ 328:     print(f"Randomized search iterations: {N_SEARCH_ITER}")
+ 329:     print(f"Random seed: {RANDOM_SEED}")
+ 330: 
+ 331:     metrics_all, perm_all, params_all, oof_all, prov_all = [], [], [], [], []
+ 332: 
+ 333:     for model_name, features in FEATURE_SETS.items():
+ 334:         print("\n" + "-" * 72)
+ 335:         print(model_name)
+ 336:         print(f"Predictors: {', '.join(features)}")
+ 337:         print("-" * 72)
+    ...
+ 418: 
+ 419:     report = [
+ 420:         "PHASE 7D — SUPPORT VECTOR REGRESSION (RBF)",
+ 421:         "=" * 72,
+ 422:         "Outer validation: frozen 5-fold spatial block CV with 500 m training exclusion buffer.",
+ 423:         f"Inner tuning: {N_INNER_FOLDS}-fold GroupKFold grouped by cv_block_id.",
+ 424:         f"Randomized search iterations per outer fold: {N_SEARCH_ITER}.",
+ 425:         f"Random seed: {RANDOM_SEED}.",
+ 426:         "Scaling: StandardScaler fitted ONLY inside each buffered training fold via Pipeline.",
+ 427:         "",
+ 428:         "Primary SVR model:",
+ 429:         "SVR_4P_MAIN = HH_dB + HV_dB + HH_minus_HV + HV_SD",
+ 430:         "",
+ 431:         "Sensitivity SVR model:",
+ 432:         "SVR_3P_SENSITIVITY = HH_dB + HV_dB + HV_SD",
+ 433:         "",
+ 434:         "Pooled out-of-fold performance:",
+ 435:         pooled.to_string(index=False),
+ 436:         "",
+    ...
+ 453: 
+ 454:     append_log([
+ 455:         "Script: phase7d_svr.py",
+ 456:         "Primary model: SVR_4P_MAIN",
+ 457:         "Sensitivity model: SVR_3P_SENSITIVITY",
+ 458:         f"Inner tuning: {N_INNER_FOLDS}-fold GroupKFold by cv_block_id",
+ 459:         f"Search iterations: {N_SEARCH_ITER}",
+ 460:         "StandardScaler fitted inside training-only pipeline.",
+ 461:         f"SVR_4P pooled OOF RMSE: {main_row['RMSE_Mg_ha']:.4f} Mg/ha",
+ 462:         f"SVR_4P pooled OOF R2: {main_row['R2']:.6f}",
+ 463:         f"SVR_3P pooled OOF RMSE: {sens_row['RMSE_Mg_ha']:.4f} Mg/ha",
+ 464:         f"SVR_3P pooled OOF R2: {sens_row['R2']:.6f}",
+ 465:     ])
+ 466: 
+ 467:     print("\n" + "=" * 72)
+ 468:     print("PHASE 7D COMPLETE — SVR REVIEW REQUIRED")
+ 469:     print("=" * 72)
+ 470: 
+
+
+====================================================================================================
+FILE: D:\NISAR_Mangrove_Paper\05_ML_DL\ExtraTrees\phase7e_extra_trees.py
+====================================================================================================
+
+IMPORTS
+----------------------------------------------------------------------------------------------------
+   1: from pathlib import Path
+   2: from datetime import datetime
+   3: import hashlib
+   4: import sys
+   5: import warnings
+   7: import numpy as np
+   8: import pandas as pd
+   9: from scipy.stats import pearsonr
+  10: from sklearn.ensemble import ExtraTreesRegressor
+  11: from sklearn.model_selection import GroupKFold, RandomizedSearchCV
+  12: from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+  13: from sklearn.inspection import permutation_importance
+  14: import matplotlib.pyplot as plt
+  15: import joblib
+
+GLOBAL SETTINGS / PARAMETER SPACES
+----------------------------------------------------------------------------------------------------
+  36: FEATURE_SETS = {
+  37:     "ET_4P_MAIN": ["HH_dB", "HV_dB", "HH_minus_HV", "HV_SD"],
+  38:     "ET_3P_SENSITIVITY": ["HH_dB", "HV_dB", "HV_SD"],
+  39: }
+
+  42: N_INNER_FOLDS = 4
+
+  43: RANDOM_SEED = 42
+
+  44: N_SEARCH_ITER = 18
+
+  54: PARAM_DISTRIBUTIONS = {
+  55:     "n_estimators": [300, 500, 700, 900],
+  56:     "max_depth": [None, 8, 12, 18, 24],
+  57:     "min_samples_split": [2, 5, 10],
+  58:     "min_samples_leaf": [1, 2, 4, 6],
+  59:     "max_features": ["sqrt", 0.6, 0.8, 1.0],
+  60:     "bootstrap": [False, True],
+  61: }
+
+
+RELEVANT FUNCTIONS
+----------------------------------------------------------------------------------------------------
+
+FUNCTION: calc_metrics
+  81: def calc_metrics(y_true, y_pred):
+  82:     rmse = float(np.sqrt(mean_squared_error(y_true, y_pred)))
+  83:     mae = float(mean_absolute_error(y_true, y_pred))
+  84:     r2 = float(r2_score(y_true, y_pred))
+  85:     bias = float(np.mean(y_pred - y_true))
+  86:     mean_obs = float(np.mean(y_true))
+  87:     nrmse = float(100.0 * rmse / mean_obs) if mean_obs != 0 else np.nan
+  88: 
+  89:     if len(y_true) > 1 and np.std(y_true) > 0 and np.std(y_pred) > 0:
+  90:         r = float(pearsonr(y_true, y_pred).statistic)
+  91:     else:
+  92:         r = np.nan
+  93: 
+  94:     return {
+  95:         "RMSE_Mg_ha": rmse,
+  96:         "MAE_Mg_ha": mae,
+  97:         "R2": r2,
+  98:         "Bias_Mg_ha": bias,
+  99:         "nRMSE_percent_of_mean": nrmse,
+ 100:         "Pearson_r": r,
+ 101:     }
+
+
+FUNCTION: fit_one_outer_fold
+ 114: def fit_one_outer_fold(model_name, features, fold, train, test):
+ 115:     X_train = train[features].to_numpy(dtype=float)
+ 116:     y_train = train[RESPONSE].to_numpy(dtype=float)
+ 117:     X_test = test[features].to_numpy(dtype=float)
+ 118:     y_test = test[RESPONSE].to_numpy(dtype=float)
+ 119: 
+ 120:     groups = train["cv_block_id"].astype(str).to_numpy()
+ 121:     unique_groups = np.unique(groups)
+ 122: 
+ 123:     if len(unique_groups) < N_INNER_FOLDS:
+ 124:         raise RuntimeError(
+ 125:             f"{model_name} fold {fold}: only {len(unique_groups)} inner groups."
+ 126:         )
+ 127: 
+ 128:     inner_cv = GroupKFold(n_splits=N_INNER_FOLDS)
+ 129: 
+ 130:     base = ExtraTreesRegressor(
+ 131:         random_state=RANDOM_SEED,
+ 132:         n_jobs=N_JOBS,
+ 133:         criterion="squared_error",
+ 134:     )
+ 135: 
+ 136:     search = RandomizedSearchCV(
+ 137:         estimator=base,
+ 138:         param_distributions=PARAM_DISTRIBUTIONS,
+ 139:         n_iter=N_SEARCH_ITER,
+ 140:         scoring="neg_root_mean_squared_error",
+ 141:         cv=inner_cv,
+ 142:         random_state=RANDOM_SEED,
+ 143:         n_jobs=N_JOBS,
+ 144:         refit=True,
+ 145:         return_train_score=False,
+ 146:         verbose=0,
+ 147:     )
+ 148: 
+ 149:     search.fit(X_train, y_train, groups=groups)
+ 150: 
+ 151:     best = search.best_estimator_
+ 152:     pred = best.predict(X_test)
+ 153: 
+ 154:     m = calc_metrics(y_test, pred)
+ 155:     m.update({
+ 156:         "model": model_name,
+ 157:         "fold": fold,
+ 158:         "train_n": len(train),
+ 159:         "test_n": len(test),
+ 160:         "inner_groups_n": len(unique_groups),
+ 161:         "inner_best_RMSE_Mg_ha": float(-search.best_score_),
+ 162:     })
+ 163: 
+ 164:     impurity = pd.DataFrame({
+ 165:         "model": model_name,
+ 166:         "fold": fold,
+ 167:         "predictor": features,
+ 168:         "importance_type": "impurity",
+ 169:         "importance": best.feature_importances_,
+ 170:     })
+ 171: 
+ 172:     # Outer-test permutation importance is DESCRIPTIVE ONLY.
+ 173:     with warnings.catch_warnings():
+ 174:         warnings.simplefilter("ignore")
+ 175:         pi = permutation_importance(
+ 176:             best,
+ 177:             X_test,
+ 178:             y_test,
+ 179:             scoring="neg_root_mean_squared_error",
+ 180:             n_repeats=20,
+ 181:             random_state=RANDOM_SEED,
+ 182:             n_jobs=N_JOBS,
+ 183:         )
+ 184: 
+ 185:     perm = pd.DataFrame({
+ 186:         "model": model_name,
+ 187:         "fold": fold,
+ 188:         "predictor": features,
+ 189:         "importance_type": "permutation_RMSE_increase",
+ 190:         "importance": pi.importances_mean,
+ 191:         "importance_sd": pi.importances_std,
+ 192:     })
+ 193: 
+ 194:     params = {
+ 195:         "model": model_name,
+ 196:         "fold": fold,
+ 197:         "best_inner_RMSE_Mg_ha": float(-search.best_score_),
+ 198:         **{f"param_{k}": v for k, v in search.best_params_.items()},
+ 199:     }
+ 200: 
+ 201:     pred_df = test.copy()
+ 202:     pred_df["outer_fold"] = fold
+ 203:     pred_df["model"] = model_name
+ 204:     pred_df["observed_agbd"] = y_test
+ 205:     pred_df["predicted_agbd"] = pred
+ 206:     pred_df["residual_observed_minus_predicted"] = y_test - pred
+ 207: 
+ 208:     return m, impurity, perm, params, pred_df, best
+
+
+FUNCTION: pooled_metrics_from_oof
+ 210: def pooled_metrics_from_oof(oof):
+ 211:     rows = []
+ 212:     for model_name, g in oof.groupby("model"):
+ 213:         m = calc_metrics(
+ 214:             g["observed_agbd"].to_numpy(dtype=float),
+ 215:             g["predicted_agbd"].to_numpy(dtype=float),
+ 216:         )
+ 217:         m.update({
+ 218:             "model": model_name,
+ 219:             "evaluation": "pooled_out_of_fold",
+ 220:             "n": len(g),
+ 221:         })
+ 222:         rows.append(m)
+ 223:     return pd.DataFrame(rows)
+
+
+FUNCTION: fold_metric_summary
+ 225: def fold_metric_summary(fold_metrics):
+ 226:     rows = []
+ 227:     metric_cols = [
+ 228:         "RMSE_Mg_ha",
+ 229:         "MAE_Mg_ha",
+ 230:         "R2",
+ 231:         "Bias_Mg_ha",
+ 232:         "nRMSE_percent_of_mean",
+ 233:         "Pearson_r",
+ 234:         "inner_best_RMSE_Mg_ha",
+ 235:     ]
+ 236:     for model_name, g in fold_metrics.groupby("model"):
+ 237:         mean_row = {
+ 238:             "model": model_name,
+ 239:             "evaluation": "mean_across_folds",
+ 240:             "n": int(g["test_n"].sum()),
+ 241:         }
+ 242:         sd_row = {
+ 243:             "model": model_name,
+ 244:             "evaluation": "sd_across_folds",
+ 245:             "n": int(g["test_n"].sum()),
+ 246:         }
+ 247:         for c in metric_cols:
+ 248:             mean_row[c] = float(g[c].mean())
+ 249:             sd_row[c] = float(g[c].std(ddof=1))
+ 250:         rows.extend([mean_row, sd_row])
+ 251:     return pd.DataFrame(rows)
+
+
+MODEL / CV / SEARCH CONTEXT
+----------------------------------------------------------------------------------------------------
+   5: import warnings
+   6: 
+   7: import numpy as np
+   8: import pandas as pd
+   9: from scipy.stats import pearsonr
+  10: from sklearn.ensemble import ExtraTreesRegressor
+  11: from sklearn.model_selection import GroupKFold, RandomizedSearchCV
+  12: from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+  13: from sklearn.inspection import permutation_importance
+  14: import matplotlib.pyplot as plt
+  15: import joblib
+  16: 
+  17: # ============================================================
+  18: # PROJECT SETTINGS
+  19: # ============================================================
+  20: PROJECT_ROOT = Path(r"D:\NISAR_Mangrove_Paper")
+  21: 
+    ...
+ 123:     if len(unique_groups) < N_INNER_FOLDS:
+ 124:         raise RuntimeError(
+ 125:             f"{model_name} fold {fold}: only {len(unique_groups)} inner groups."
+ 126:         )
+ 127: 
+ 128:     inner_cv = GroupKFold(n_splits=N_INNER_FOLDS)
+ 129: 
+ 130:     base = ExtraTreesRegressor(
+ 131:         random_state=RANDOM_SEED,
+ 132:         n_jobs=N_JOBS,
+ 133:         criterion="squared_error",
+ 134:     )
+ 135: 
+ 136:     search = RandomizedSearchCV(
+ 137:         estimator=base,
+ 138:         param_distributions=PARAM_DISTRIBUTIONS,
+ 139:         n_iter=N_SEARCH_ITER,
+ 140:         scoring="neg_root_mean_squared_error",
+ 141:         cv=inner_cv,
+ 142:         random_state=RANDOM_SEED,
+ 143:         n_jobs=N_JOBS,
+ 144:         refit=True,
+ 145:         return_train_score=False,
+ 146:         verbose=0,
+    ...
+ 437: def main():
+ 438:     print("=" * 72)
+ 439:     print("PHASE 7E — EXTRA TREES REGRESSION")
+ 440:     print("=" * 72)
+ 441:     print("Outer validation: frozen 5-fold spatial CV + 500 m training buffer")
+ 442:     print(f"Inner tuning: {N_INNER_FOLDS}-fold GroupKFold by 3 km cv_block_id")
+ 443:     print(f"Randomized search iterations: {N_SEARCH_ITER}")
+ 444:     print(f"Random seed: {RANDOM_SEED}")
+ 445: 
+ 446:     metrics_all = []
+ 447:     impurity_all = []
+ 448:     perm_all = []
+ 449:     params_all = []
+ 450:     oof_all = []
+ 451:     provenance_all = []
+ 452: 
+    ...
+ 551: 
+ 552:     report = [
+ 553:         "PHASE 7E — EXTRA TREES REGRESSION",
+ 554:         "=" * 72,
+ 555:         "Outer validation: frozen 5-fold spatial block CV with 500 m training exclusion buffer.",
+ 556:         f"Inner tuning: {N_INNER_FOLDS}-fold GroupKFold grouped by cv_block_id.",
+ 557:         f"Randomized search iterations per outer fold: {N_SEARCH_ITER}.",
+ 558:         f"Random seed: {RANDOM_SEED}.",
+ 559:         "",
+ 560:         "Primary Extra Trees model:",
+ 561:         "ET_4P_MAIN = HH_dB + HV_dB + HH_minus_HV + HV_SD",
+ 562:         "",
+ 563:         "Sensitivity Extra Trees model:",
+ 564:         "ET_3P_SENSITIVITY = HH_dB + HV_dB + HV_SD",
+ 565:         "",
+ 566:         "Pooled out-of-fold performance:",
+    ...
+ 586: 
+ 587:     append_log([
+ 588:         "Script: phase7e_extra_trees.py",
+ 589:         "Primary model: ET_4P_MAIN",
+ 590:         "Sensitivity model: ET_3P_SENSITIVITY",
+ 591:         f"Inner tuning: {N_INNER_FOLDS}-fold GroupKFold by cv_block_id",
+ 592:         f"Search iterations: {N_SEARCH_ITER}",
+ 593:         f"Random seed: {RANDOM_SEED}",
+ 594:         f"ET_4P pooled OOF RMSE: {main_row['RMSE_Mg_ha']:.4f} Mg/ha",
+ 595:         f"ET_4P pooled OOF R2: {main_row['R2']:.6f}",
+ 596:         f"ET_3P pooled OOF RMSE: {sens_row['RMSE_Mg_ha']:.4f} Mg/ha",
+ 597:         f"ET_3P pooled OOF R2: {sens_row['R2']:.6f}",
+ 598:     ])
+ 599: 
+ 600:     print("\n" + "=" * 72)
+ 601:     print("PHASE 7E COMPLETE — EXTRA TREES REVIEW REQUIRED")
+
+
+====================================================================================================
+FILE: D:\NISAR_Mangrove_Paper\05_ML_DL\DNN\phase7f_mlp_dnn.py
+====================================================================================================
+
+IMPORTS
+----------------------------------------------------------------------------------------------------
+   1: from pathlib import Path
+   2: from datetime import datetime
+   3: import hashlib
+   4: import os
+   5: import sys
+   6: import warnings
+  14: import numpy as np
+  15: import pandas as pd
+  16: from scipy.stats import pearsonr
+  17: from sklearn.pipeline import Pipeline
+  18: from sklearn.preprocessing import StandardScaler
+  19: from sklearn.neural_network import MLPRegressor
+  20: from sklearn.model_selection import GroupKFold, RandomizedSearchCV
+  21: from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+  22: from sklearn.inspection import permutation_importance
+  23: from sklearn.exceptions import ConvergenceWarning
+  24: import matplotlib.pyplot as plt
+  25: import joblib
+
+GLOBAL SETTINGS / PARAMETER SPACES
+----------------------------------------------------------------------------------------------------
+  47: FEATURE_SETS = {
+  48:     "MLP_4P_MAIN": ["HH_dB", "HV_dB", "HH_minus_HV", "HV_SD"],
+  49:     "MLP_3P_SENSITIVITY": ["HH_dB", "HV_dB", "HV_SD"],
+  50: }
+
+  53: N_INNER_FOLDS = 4
+
+  54: RANDOM_SEED = 42
+
+  55: N_SEARCH_ITER = 12
+
+  65: PARAM_DISTRIBUTIONS = {
+  66:     "mlp__hidden_layer_sizes": [
+  67:         (16,),
+  68:         (32,),
+  69:         (64,),
+  70:         (32, 16),
+  71:         (64, 32),
+  72:         (32, 16, 8),
+  73:     ],
+  74:     "mlp__activation": ["relu", "tanh"],
+  75:     "mlp__alpha": [1e-4, 1e-3, 1e-2, 1e-1],
+  76:     "mlp__learning_rate_init": [1e-4, 5e-4, 1e-3, 5e-3],
+  77: }
+
+
+RELEVANT FUNCTIONS
+----------------------------------------------------------------------------------------------------
+
+FUNCTION: calc_metrics
+  97: def calc_metrics(y_true, y_pred):
+  98:     rmse = float(np.sqrt(mean_squared_error(y_true, y_pred)))
+  99:     mae = float(mean_absolute_error(y_true, y_pred))
+ 100:     r2 = float(r2_score(y_true, y_pred))
+ 101:     bias = float(np.mean(y_pred - y_true))
+ 102:     mean_obs = float(np.mean(y_true))
+ 103:     nrmse = float(100.0 * rmse / mean_obs) if mean_obs != 0 else np.nan
+ 104: 
+ 105:     if len(y_true) > 1 and np.std(y_true) > 0 and np.std(y_pred) > 0:
+ 106:         r = float(pearsonr(y_true, y_pred).statistic)
+ 107:     else:
+ 108:         r = np.nan
+ 109: 
+ 110:     return {
+ 111:         "RMSE_Mg_ha": rmse,
+ 112:         "MAE_Mg_ha": mae,
+ 113:         "R2": r2,
+ 114:         "Bias_Mg_ha": bias,
+ 115:         "nRMSE_percent_of_mean": nrmse,
+ 116:         "Pearson_r": r,
+ 117:     }
+
+
+FUNCTION: fit_one_outer_fold
+ 130: def fit_one_outer_fold(model_name, features, fold, train, test):
+ 131:     X_train = train[features].to_numpy(dtype=float)
+ 132:     y_train = train[RESPONSE].to_numpy(dtype=float)
+ 133:     X_test = test[features].to_numpy(dtype=float)
+ 134:     y_test = test[RESPONSE].to_numpy(dtype=float)
+ 135: 
+ 136:     groups = train["cv_block_id"].astype(str).to_numpy()
+ 137:     unique_groups = np.unique(groups)
+ 138: 
+ 139:     if len(unique_groups) < N_INNER_FOLDS:
+ 140:         raise RuntimeError(
+ 141:             f"{model_name} fold {fold}: only {len(unique_groups)} inner groups."
+ 142:         )
+ 143: 
+ 144:     inner_cv = GroupKFold(n_splits=N_INNER_FOLDS)
+ 145: 
+ 146:     pipe = Pipeline([
+ 147:         ("scaler", StandardScaler()),
+ 148:         ("mlp", MLPRegressor(
+ 149:             solver="adam",
+ 150:             max_iter=1500,
+ 151:             early_stopping=False,
+ 152:             learning_rate="adaptive",
+ 153:             random_state=RANDOM_SEED,
+ 154:             tol=1e-4,
+ 155:         )),
+ 156:     ])
+ 157: 
+ 158:     search = RandomizedSearchCV(
+ 159:         estimator=pipe,
+ 160:         param_distributions=PARAM_DISTRIBUTIONS,
+ 161:         n_iter=N_SEARCH_ITER,
+ 162:         scoring="neg_root_mean_squared_error",
+ 163:         cv=inner_cv,
+ 164:         random_state=RANDOM_SEED,
+ 165:         n_jobs=N_JOBS,
+ 166:         refit=True,
+ 167:         return_train_score=False,
+ 168:         verbose=0,
+ 169:     )
+ 170: 
+ 171:     with warnings.catch_warnings():
+ 172:         warnings.simplefilter("ignore", category=ConvergenceWarning)
+ 173:         search.fit(X_train, y_train, groups=groups)
+ 174: 
+ 175:     best = search.best_estimator_
+ 176:     pred = best.predict(X_test)
+ 177: 
+ 178:     m = calc_metrics(y_test, pred)
+ 179:     m.update({
+ 180:         "model": model_name,
+ 181:         "fold": fold,
+ 182:         "train_n": len(train),
+ 183:         "test_n": len(test),
+ 184:         "inner_groups_n": len(unique_groups),
+ 185:         "inner_best_RMSE_Mg_ha": float(-search.best_score_),
+ 186:     })
+ 187: 
+ 188:     # Test-fold permutation importance is descriptive only.
+ 189:     with warnings.catch_warnings():
+ 190:         warnings.simplefilter("ignore")
+ 191:         pi = permutation_importance(
+ 192:             best,
+ 193:             X_test,
+ 194:             y_test,
+ 195:             scoring="neg_root_mean_squared_error",
+ 196:             n_repeats=20,
+ 197:             random_state=RANDOM_SEED,
+ 198:             n_jobs=1,
+ 199:         )
+ 200: 
+ 201:     perm = pd.DataFrame({
+ 202:         "model": model_name,
+ 203:         "fold": fold,
+ 204:         "predictor": features,
+ 205:         "mean_permutation_RMSE_increase": pi.importances_mean,
+ 206:         "sd_permutation_RMSE_increase": pi.importances_std,
+ 207:     })
+ 208: 
+ 209:     params = {
+ 210:         "model": model_name,
+ 211:         "fold": fold,
+ 212:         "best_inner_RMSE_Mg_ha": float(-search.best_score_),
+ 213:         **{k.replace("mlp__", ""): v for k, v in search.best_params_.items()},
+ 214:     }
+ 215: 
+ 216:     # Add fitted iteration count / training-loss metadata.
+ 217:     fitted_mlp = best.named_steps["mlp"]
+ 218:     params["n_iter_fit"] = int(getattr(fitted_mlp, "n_iter_", -1))
+ 219:     params["final_training_loss"] = float(getattr(fitted_mlp, "loss_", np.nan))
+ 220: 
+ 221:     pred_df = test.copy()
+ 222:     pred_df["outer_fold"] = fold
+ 223:     pred_df["model"] = model_name
+ 224:     pred_df["observed_agbd"] = y_test
+ 225:     pred_df["predicted_agbd"] = pred
+ 226:     pred_df["residual_observed_minus_predicted"] = y_test - pred
+ 227: 
+ 228:     return m, perm, params, pred_df, best
+
+
+FUNCTION: pooled_metrics_from_oof
+ 230: def pooled_metrics_from_oof(oof):
+ 231:     rows = []
+ 232:     for model_name, g in oof.groupby("model"):
+ 233:         m = calc_metrics(
+ 234:             g["observed_agbd"].to_numpy(dtype=float),
+ 235:             g["predicted_agbd"].to_numpy(dtype=float),
+ 236:         )
+ 237:         m.update({
+ 238:             "model": model_name,
+ 239:             "evaluation": "pooled_out_of_fold",
+ 240:             "n": len(g),
+ 241:         })
+ 242:         rows.append(m)
+ 243:     return pd.DataFrame(rows)
+
+
+FUNCTION: fold_metric_summary
+ 245: def fold_metric_summary(fold_metrics):
+ 246:     rows = []
+ 247:     metric_cols = [
+ 248:         "RMSE_Mg_ha", "MAE_Mg_ha", "R2", "Bias_Mg_ha",
+ 249:         "nRMSE_percent_of_mean", "Pearson_r", "inner_best_RMSE_Mg_ha",
+ 250:     ]
+ 251:     for model_name, g in fold_metrics.groupby("model"):
+ 252:         mean_row = {
+ 253:             "model": model_name,
+ 254:             "evaluation": "mean_across_folds",
+ 255:             "n": int(g["test_n"].sum()),
+ 256:         }
+ 257:         sd_row = {
+ 258:             "model": model_name,
+ 259:             "evaluation": "sd_across_folds",
+ 260:             "n": int(g["test_n"].sum()),
+ 261:         }
+ 262:         for c in metric_cols:
+ 263:             mean_row[c] = float(g[c].mean())
+ 264:             sd_row[c] = float(g[c].std(ddof=1))
+ 265:         rows.extend([mean_row, sd_row])
+ 266:     return pd.DataFrame(rows)
+
+
+MODEL / CV / SEARCH CONTEXT
+----------------------------------------------------------------------------------------------------
+  13: 
+  14: import numpy as np
+  15: import pandas as pd
+  16: from scipy.stats import pearsonr
+  17: from sklearn.pipeline import Pipeline
+  18: from sklearn.preprocessing import StandardScaler
+  19: from sklearn.neural_network import MLPRegressor
+  20: from sklearn.model_selection import GroupKFold, RandomizedSearchCV
+  21: from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+  22: from sklearn.inspection import permutation_importance
+  23: from sklearn.exceptions import ConvergenceWarning
+  24: import matplotlib.pyplot as plt
+  25: import joblib
+  26: 
+  27: # ============================================================
+  28: # PROJECT SETTINGS
+  29: # ============================================================
+  30: PROJECT_ROOT = Path(r"D:\NISAR_Mangrove_Paper")
+    ...
+ 139:     if len(unique_groups) < N_INNER_FOLDS:
+ 140:         raise RuntimeError(
+ 141:             f"{model_name} fold {fold}: only {len(unique_groups)} inner groups."
+ 142:         )
+ 143: 
+ 144:     inner_cv = GroupKFold(n_splits=N_INNER_FOLDS)
+ 145: 
+ 146:     pipe = Pipeline([
+ 147:         ("scaler", StandardScaler()),
+ 148:         ("mlp", MLPRegressor(
+ 149:             solver="adam",
+ 150:             max_iter=1500,
+ 151:             early_stopping=False,
+ 152:             learning_rate="adaptive",
+ 153:             random_state=RANDOM_SEED,
+ 154:             tol=1e-4,
+ 155:         )),
+ 156:     ])
+ 157: 
+ 158:     search = RandomizedSearchCV(
+ 159:         estimator=pipe,
+ 160:         param_distributions=PARAM_DISTRIBUTIONS,
+ 161:         n_iter=N_SEARCH_ITER,
+ 162:         scoring="neg_root_mean_squared_error",
+ 163:         cv=inner_cv,
+ 164:         random_state=RANDOM_SEED,
+ 165:         n_jobs=N_JOBS,
+ 166:         refit=True,
+ 167:         return_train_score=False,
+ 168:         verbose=0,
+    ...
+ 401: 
+ 402: def main():
+ 403:     print("=" * 72)
+ 404:     print("PHASE 7F — MLP / DNN")
+ 405:     print("=" * 72)
+ 406:     print("Implementation: scikit-learn MLPRegressor neural network")
+ 407:     print("Outer validation: frozen 5-fold spatial CV + 500 m training buffer")
+ 408:     print(f"Inner tuning: {N_INNER_FOLDS}-fold GroupKFold by 3 km cv_block_id")
+ 409:     print(f"Randomized search iterations: {N_SEARCH_ITER}")
+ 410:     print(f"Random seed: {RANDOM_SEED}")
+ 411:     print("StandardScaler is fitted inside each training fold only.")
+ 412:     print("Windows-safe execution: n_jobs=1")
+ 413: 
+ 414:     metrics_all = []
+ 415:     perm_all = []
+ 416:     params_all = []
+ 417:     oof_all = []
+ 418:     provenance_all = []
+ 419: 
+ 420:     for model_name, features in FEATURE_SETS.items():
+ 421:         print("\n" + "-" * 72)
+    ...
+ 511:     sens_row = pooled[pooled["model"] == "MLP_3P_SENSITIVITY"].iloc[0]
+ 512: 
+ 513:     report = [
+ 514:         "PHASE 7F — MLP / DNN",
+ 515:         "=" * 72,
+ 516:         "Implementation: scikit-learn MLPRegressor.",
+ 517:         "Outer validation: frozen 5-fold spatial block CV with 500 m training exclusion buffer.",
+ 518:         f"Inner tuning: {N_INNER_FOLDS}-fold GroupKFold grouped by cv_block_id.",
+ 519:         f"Randomized search iterations per outer fold: {N_SEARCH_ITER}.",
+ 520:         f"Random seed: {RANDOM_SEED}.",
+ 521:         "Scaling: StandardScaler fitted inside each training fold via Pipeline.",
+ 522:         "Early stopping: disabled, avoiding an extra random internal validation split.",
+ 523:         "Execution: n_jobs=1 / low-memory Windows-safe.",
+ 524:         "",
+ 525:         "Primary MLP model:",
+ 526:         "MLP_4P_MAIN = HH_dB + HV_dB + HH_minus_HV + HV_SD",
+ 527:         "",
+ 528:         "Sensitivity MLP model:",
+ 529:         "MLP_3P_SENSITIVITY = HH_dB + HV_dB + HV_SD",
+ 530:         "",
+ 531:         "Pooled out-of-fold performance:",
+    ...
+ 549: 
+ 550:     (OUT_DIR / "MLP_QC_REPORT.txt").write_text("\n".join(report), encoding="utf-8")
+ 551: 
+ 552:     append_log([
+ 553:         "Script: phase7f_mlp_dnn.py",
+ 554:         "Implementation: scikit-learn MLPRegressor",
+ 555:         "Primary model: MLP_4P_MAIN",
+ 556:         "Sensitivity model: MLP_3P_SENSITIVITY",
+ 557:         f"Inner tuning: {N_INNER_FOLDS}-fold GroupKFold by cv_block_id",
+ 558:         f"Search iterations: {N_SEARCH_ITER}",
+ 559:         "StandardScaler fitted in training-only Pipeline.",
+ 560:         "Early stopping disabled.",
+ 561:         f"MLP_4P pooled OOF RMSE: {main_row['RMSE_Mg_ha']:.4f} Mg/ha",
+ 562:         f"MLP_4P pooled OOF R2: {main_row['R2']:.6f}",
+ 563:         f"MLP_3P pooled OOF RMSE: {sens_row['RMSE_Mg_ha']:.4f} Mg/ha",
+ 564:         f"MLP_3P pooled OOF R2: {sens_row['R2']:.6f}",
+ 565:     ])
+ 566: 
+ 567:     print("\n" + "=" * 72)
+ 568:     print("PHASE 7F COMPLETE — MLP/DNN REVIEW REQUIRED")
+ 569:     print("=" * 72)
+
+
+====================================================================================================
+FILE: D:\NISAR_Mangrove_Paper\05_ML_DL\GAM\phase7g_gam.py
+====================================================================================================
+
+IMPORTS
+----------------------------------------------------------------------------------------------------
+   1: from pathlib import Path
+   2: from datetime import datetime
+   3: import hashlib
+   4: import os
+   5: import sys
+   6: import warnings
+  14: import numpy as np
+  15: import pandas as pd
+  16: from scipy.stats import pearsonr
+  17: from sklearn.base import BaseEstimator, TransformerMixin
+  18: from sklearn.compose import ColumnTransformer
+  19: from sklearn.pipeline import Pipeline
+  20: from sklearn.preprocessing import SplineTransformer, StandardScaler
+  21: from sklearn.linear_model import Ridge
+  22: from sklearn.model_selection import GroupKFold, RandomizedSearchCV
+  23: from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+  24: from sklearn.inspection import permutation_importance
+  25: import matplotlib.pyplot as plt
+  26: import joblib
+
+GLOBAL SETTINGS / PARAMETER SPACES
+----------------------------------------------------------------------------------------------------
+  49: FEATURE_SETS = {
+  50:     "GAM_4P_MAIN": ["HH_dB", "HV_dB", "HH_minus_HV", "HV_SD"],
+  51:     "GAM_3P_SENSITIVITY": ["HH_dB", "HV_dB", "HV_SD"],
+  52: }
+
+  55: N_INNER_FOLDS = 4
+
+  56: RANDOM_SEED = 42
+
+  57: N_SEARCH_ITER = 16
+
+  72: PARAM_DISTRIBUTIONS = {
+  73:     "spline__n_knots": [4, 5, 6, 7, 8, 10],
+  74:     "spline__degree": [2, 3],
+  75:     "ridge__alpha": [0.01, 0.1, 1.0, 10.0, 100.0, 1000.0],
+  76: }
+
+
+RELEVANT FUNCTIONS
+----------------------------------------------------------------------------------------------------
+
+FUNCTION: calc_metrics
+ 131: def calc_metrics(y_true, y_pred):
+ 132:     rmse = float(np.sqrt(mean_squared_error(y_true, y_pred)))
+ 133:     mae = float(mean_absolute_error(y_true, y_pred))
+ 134:     r2 = float(r2_score(y_true, y_pred))
+ 135:     bias = float(np.mean(y_pred - y_true))
+ 136:     mean_obs = float(np.mean(y_true))
+ 137:     nrmse = float(100.0 * rmse / mean_obs) if mean_obs != 0 else np.nan
+ 138: 
+ 139:     if len(y_true) > 1 and np.std(y_true) > 0 and np.std(y_pred) > 0:
+ 140:         r = float(pearsonr(y_true, y_pred).statistic)
+ 141:     else:
+ 142:         r = np.nan
+ 143: 
+ 144:     return {
+ 145:         "RMSE_Mg_ha": rmse,
+ 146:         "MAE_Mg_ha": mae,
+ 147:         "R2": r2,
+ 148:         "Bias_Mg_ha": bias,
+ 149:         "nRMSE_percent_of_mean": nrmse,
+ 150:         "Pearson_r": r,
+ 151:     }
+
+
+FUNCTION: make_pipeline
+ 164: def make_pipeline():
+ 165:     return Pipeline([
+ 166:         ("spline", AdditiveSplineTransformer()),
+ 167:         ("scale", StandardScaler()),
+ 168:         ("ridge", Ridge()),
+ 169:     ])
+
+
+FUNCTION: fit_one_outer_fold
+ 171: def fit_one_outer_fold(model_name, features, fold, train, test):
+ 172:     X_train = train[features].to_numpy(dtype=float)
+ 173:     y_train = train[RESPONSE].to_numpy(dtype=float)
+ 174:     X_test = test[features].to_numpy(dtype=float)
+ 175:     y_test = test[RESPONSE].to_numpy(dtype=float)
+ 176: 
+ 177:     groups = train["cv_block_id"].astype(str).to_numpy()
+ 178:     unique_groups = np.unique(groups)
+ 179: 
+ 180:     if len(unique_groups) < N_INNER_FOLDS:
+ 181:         raise RuntimeError(
+ 182:             f"{model_name} fold {fold}: only {len(unique_groups)} inner groups."
+ 183:         )
+ 184: 
+ 185:     inner_cv = GroupKFold(n_splits=N_INNER_FOLDS)
+ 186: 
+ 187:     search = RandomizedSearchCV(
+ 188:         estimator=make_pipeline(),
+ 189:         param_distributions=PARAM_DISTRIBUTIONS,
+ 190:         n_iter=N_SEARCH_ITER,
+ 191:         scoring="neg_root_mean_squared_error",
+ 192:         cv=inner_cv,
+ 193:         random_state=RANDOM_SEED,
+ 194:         n_jobs=N_JOBS,
+ 195:         refit=True,
+ 196:         return_train_score=False,
+ 197:         verbose=0,
+ 198:     )
+ 199: 
+ 200:     search.fit(X_train, y_train, groups=groups)
+ 201: 
+ 202:     best = search.best_estimator_
+ 203:     pred = best.predict(X_test)
+ 204: 
+ 205:     m = calc_metrics(y_test, pred)
+ 206:     m.update({
+ 207:         "model": model_name,
+ 208:         "fold": fold,
+ 209:         "train_n": len(train),
+ 210:         "test_n": len(test),
+ 211:         "inner_groups_n": len(unique_groups),
+ 212:         "inner_best_RMSE_Mg_ha": float(-search.best_score_),
+ 213:     })
+ 214: 
+ 215:     # Outer-test permutation importance is descriptive only.
+ 216:     with warnings.catch_warnings():
+ 217:         warnings.simplefilter("ignore")
+ 218:         pi = permutation_importance(
+ 219:             best,
+ 220:             X_test,
+ 221:             y_test,
+ 222:             scoring="neg_root_mean_squared_error",
+ 223:             n_repeats=20,
+ 224:             random_state=RANDOM_SEED,
+ 225:             n_jobs=1,
+ 226:         )
+ 227: 
+ 228:     perm = pd.DataFrame({
+ 229:         "model": model_name,
+ 230:         "fold": fold,
+ 231:         "predictor": features,
+ 232:         "mean_permutation_RMSE_increase": pi.importances_mean,
+ 233:         "sd_permutation_RMSE_increase": pi.importances_std,
+ 234:     })
+ 235: 
+ 236:     params = {
+ 237:         "model": model_name,
+ 238:         "fold": fold,
+ 239:         "best_inner_RMSE_Mg_ha": float(-search.best_score_),
+ 240:         **{
+ 241:             k.replace("spline__", "").replace("ridge__", ""): v
+ 242:             for k, v in search.best_params_.items()
+ 243:         },
+ 244:     }
+ 245: 
+ 246:     pred_df = test.copy()
+ 247:     pred_df["outer_fold"] = fold
+ 248:     pred_df["model"] = model_name
+ 249:     pred_df["observed_agbd"] = y_test
+ 250:     pred_df["predicted_agbd"] = pred
+ 251:     pred_df["residual_observed_minus_predicted"] = y_test - pred
+ 252: 
+ 253:     return m, perm, params, pred_df, best
+
+
+FUNCTION: pooled_metrics_from_oof
+ 255: def pooled_metrics_from_oof(oof):
+ 256:     rows = []
+ 257:     for model_name, g in oof.groupby("model"):
+ 258:         m = calc_metrics(
+ 259:             g["observed_agbd"].to_numpy(dtype=float),
+ 260:             g["predicted_agbd"].to_numpy(dtype=float),
+ 261:         )
+ 262:         m.update({
+ 263:             "model": model_name,
+ 264:             "evaluation": "pooled_out_of_fold",
+ 265:             "n": len(g),
+ 266:         })
+ 267:         rows.append(m)
+ 268:     return pd.DataFrame(rows)
+
+
+FUNCTION: fold_metric_summary
+ 270: def fold_metric_summary(fold_metrics):
+ 271:     rows = []
+ 272:     metric_cols = [
+ 273:         "RMSE_Mg_ha", "MAE_Mg_ha", "R2", "Bias_Mg_ha",
+ 274:         "nRMSE_percent_of_mean", "Pearson_r", "inner_best_RMSE_Mg_ha",
+ 275:     ]
+ 276:     for model_name, g in fold_metrics.groupby("model"):
+ 277:         mean_row = {
+ 278:             "model": model_name,
+ 279:             "evaluation": "mean_across_folds",
+ 280:             "n": int(g["test_n"].sum()),
+ 281:         }
+ 282:         sd_row = {
+ 283:             "model": model_name,
+ 284:             "evaluation": "sd_across_folds",
+ 285:             "n": int(g["test_n"].sum()),
+ 286:         }
+ 287:         for c in metric_cols:
+ 288:             mean_row[c] = float(g[c].mean())
+ 289:             sd_row[c] = float(g[c].std(ddof=1))
+ 290:         rows.extend([mean_row, sd_row])
+ 291:     return pd.DataFrame(rows)
+
+
+FUNCTION: make_main_smooth_curves
+ 351: def make_main_smooth_curves(fitted_models, train_refs, features):
+ 352:     """
+ 353:     For the 4P MAIN GAM-style model only:
+ 354:     vary one predictor at a time from its pooled 5th to 95th percentile,
+ 355:     hold all other predictors at pooled training medians,
+ 356:     predict with each outer-fold fitted model, then summarize mean ± SD.
+ 357:     """
+ 358:     pooled_train = pd.concat(train_refs, ignore_index=True)
+ 359:     medians = pooled_train[features].median()
+ 360:     curves = []
+ 361: 
+ 362:     for feat in features:
+ 363:         q05 = float(pooled_train[feat].quantile(0.05))
+ 364:         q95 = float(pooled_train[feat].quantile(0.95))
+ 365:         grid = np.linspace(q05, q95, 120)
+ 366: 
+ 367:         fold_preds = []
+ 368:         for fold, model in fitted_models.items():
+ 369:             X = pd.DataFrame(
+ 370:                 np.tile(medians.to_numpy(dtype=float), (len(grid), 1)),
+ 371:                 columns=features,
+ 372:             )
+ 373:             X[feat] = grid
+ 374:             pred = model.predict(X[features].to_numpy(dtype=float))
+ 375:             fold_preds.append(pred)
+ 376: 
+ 377:         fold_preds = np.vstack(fold_preds)
+ 378:         mean_pred = fold_preds.mean(axis=0)
+ 379:         sd_pred = fold_preds.std(axis=0, ddof=1)
+ 380: 
+ 381:         cdf = pd.DataFrame({
+ 382:             "predictor": feat,
+ 383:             "predictor_value": grid,
+ 384:             "mean_predicted_agbd": mean_pred,
+ 385:             "sd_across_outer_folds": sd_pred,
+ 386:             "lower_1sd": mean_pred - sd_pred,
+ 387:             "upper_1sd": mean_pred + sd_pred,
+ 388:         })
+ 389:         curves.append(cdf)
+ 390: 
+ 391:         fig, ax = plt.subplots(figsize=(7.2, 5.4))
+ 392:         ax.plot(grid, mean_pred, linewidth=1.8, label="Mean GAM response")
+ 393:         ax.fill_between(
+ 394:             grid,
+ 395:             mean_pred - sd_pred,
+ 396:             mean_pred + sd_pred,
+ 397:             alpha=0.20,
+ 398:             label="±1 SD across outer-fold fits",
+ 399:         )
+ 400:         ax.set_xlabel(feat)
+ 401:         ax.set_ylabel("Predicted AGBD (Mg/ha)")
+ 402:         ax.set_title(f"GAM smooth response — {feat}", pad=12)
+ 403:         ax.legend(loc="upper left", bbox_to_anchor=(1.02, 1.0), frameon=False)
+ 404:         fig.tight_layout()
+ 405:         fig.savefig(CURVE_DIR / f"GAM_smooth_{feat}.png", dpi=450, bbox_inches="tight")
+ 406:         fig.savefig(CURVE_DIR / f"GAM_smooth_{feat}.pdf", bbox_inches="tight")
+ 407:         plt.close(fig)
+ 408: 
+ 409:     curves = pd.concat(curves, ignore_index=True)
+ 410:     curves.to_csv(TABLE_DIR / "GAM_main_smooth_response_curves.csv", index=False)
+ 411:     return curves
+
+
+MODEL / CV / SEARCH CONTEXT
+----------------------------------------------------------------------------------------------------
+  15: import pandas as pd
+  16: from scipy.stats import pearsonr
+  17: from sklearn.base import BaseEstimator, TransformerMixin
+  18: from sklearn.compose import ColumnTransformer
+  19: from sklearn.pipeline import Pipeline
+  20: from sklearn.preprocessing import SplineTransformer, StandardScaler
+  21: from sklearn.linear_model import Ridge
+  22: from sklearn.model_selection import GroupKFold, RandomizedSearchCV
+  23: from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+  24: from sklearn.inspection import permutation_importance
+  25: import matplotlib.pyplot as plt
+  26: import joblib
+  27: 
+  28: # ============================================================
+  29: # PROJECT SETTINGS
+  30: # ============================================================
+  31: PROJECT_ROOT = Path(r"D:\NISAR_Mangrove_Paper")
+  32: 
+    ...
+  35:     / "05_ML_DL"
+  36:     / "Spatial_CV"
+  37:     / "Buffered_500m"
+  38: )
+  39: 
+  40: MODEL_DIR = PROJECT_ROOT / "05_ML_DL" / "GAM"
+  41: OUT_DIR = PROJECT_ROOT / "06_Results" / "GAM"
+  42: TABLE_DIR = OUT_DIR / "Tables"
+  43: FIG_DIR = OUT_DIR / "Figures"
+  44: CURVE_DIR = OUT_DIR / "Smooth_Response_Curves"
+  45: LOG_PATH = PROJECT_ROOT / "00_Documentation" / "analysis_log.txt"
+  46: 
+  47: RESPONSE = "agbd"
+  48: 
+  49: FEATURE_SETS = {
+  50:     "GAM_4P_MAIN": ["HH_dB", "HV_dB", "HH_minus_HV", "HV_SD"],
+  51:     "GAM_3P_SENSITIVITY": ["HH_dB", "HV_dB", "HV_SD"],
+  52: }
+  53: 
+  54: N_OUTER_FOLDS = 5
+  55: N_INNER_FOLDS = 4
+  56: RANDOM_SEED = 42
+  57: N_SEARCH_ITER = 16
+  58: N_JOBS = 1
+  59: 
+  60: TABLE_DIR.mkdir(parents=True, exist_ok=True)
+  61: FIG_DIR.mkdir(parents=True, exist_ok=True)
+    ...
+  63: MODEL_DIR.mkdir(parents=True, exist_ok=True)
+  64: 
+  65: # ============================================================
+  66: # SEARCH SPACE
+  67: # ============================================================
+  68: # This is a GAM-style additive penalized spline model implemented with:
+  69: # one spline basis per predictor + Ridge penalty.
+  70: #
+  71: # No predictor interactions are included.
+  72: PARAM_DISTRIBUTIONS = {
+  73:     "spline__n_knots": [4, 5, 6, 7, 8, 10],
+  74:     "spline__degree": [2, 3],
+  75:     "ridge__alpha": [0.01, 0.1, 1.0, 10.0, 100.0, 1000.0],
+  76: }
+  77: 
+  78: # ============================================================
+  79: # CUSTOM ADDITIVE SPLINE TRANSFORMER
+  80: # ============================================================
+  81: class AdditiveSplineTransformer(BaseEstimator, TransformerMixin):
+  82:     """
+  83:     Applies a separate univariate SplineTransformer to every input column.
+  84:     The transformed bases are concatenated with NO cross-feature interactions.
+  85:     """
+  86:     def __init__(self, n_knots=6, degree=3):
+  87:         self.n_knots = n_knots
+  88:         self.degree = degree
+  89: 
+  90:     def fit(self, X, y=None):
+  91:         X = np.asarray(X, dtype=float)
+  92:         self.transformers_ = []
+  93:         for j in range(X.shape[1]):
+  94:             st = SplineTransformer(
+  95:                 n_knots=self.n_knots,
+  96:                 degree=self.degree,
+  97:                 include_bias=False,
+  98:                 knots="quantile",
+  99:                 extrapolation="linear",
+ 100:             )
+ 101:             st.fit(X[:, [j]])
+ 102:             self.transformers_.append(st)
+ 103:         return self
+ 104: 
+    ...
+ 121:     return h.hexdigest()
+ 122: 
+ 123: def append_log(lines):
+ 124:     stamp = datetime.now().astimezone().isoformat(timespec="seconds")
+ 125:     with LOG_PATH.open("a", encoding="utf-8") as f:
+ 126:         f.write("\n[" + stamp + "] PHASE 7G — GAM-STYLE PENALIZED SPLINE REGRESSION\n")
+ 127:         for line in lines:
+ 128:             f.write(line + "\n")
+ 129:         f.write("-" * 72 + "\n")
+ 130: 
+ 131: def calc_metrics(y_true, y_pred):
+ 132:     rmse = float(np.sqrt(mean_squared_error(y_true, y_pred)))
+ 133:     mae = float(mean_absolute_error(y_true, y_pred))
+ 134:     r2 = float(r2_score(y_true, y_pred))
+ 135:     bias = float(np.mean(y_pred - y_true))
+ 136:     mean_obs = float(np.mean(y_true))
+    ...
+ 161:     if not np.isfinite(arr).all():
+ 162:         raise RuntimeError(f"{label}: non-finite values found.")
+ 163: 
+ 164: def make_pipeline():
+ 165:     return Pipeline([
+ 166:         ("spline", AdditiveSplineTransformer()),
+ 167:         ("scale", StandardScaler()),
+ 168:         ("ridge", Ridge()),
+ 169:     ])
+ 170: 
+ 171: def fit_one_outer_fold(model_name, features, fold, train, test):
+ 172:     X_train = train[features].to_numpy(dtype=float)
+ 173:     y_train = train[RESPONSE].to_numpy(dtype=float)
+ 174:     X_test = test[features].to_numpy(dtype=float)
+ 175:     y_test = test[RESPONSE].to_numpy(dtype=float)
+ 176: 
+ 177:     groups = train["cv_block_id"].astype(str).to_numpy()
+ 178:     unique_groups = np.unique(groups)
+    ...
+ 180:     if len(unique_groups) < N_INNER_FOLDS:
+ 181:         raise RuntimeError(
+ 182:             f"{model_name} fold {fold}: only {len(unique_groups)} inner groups."
+ 183:         )
+ 184: 
+ 185:     inner_cv = GroupKFold(n_splits=N_INNER_FOLDS)
+ 186: 
+ 187:     search = RandomizedSearchCV(
+ 188:         estimator=make_pipeline(),
+ 189:         param_distributions=PARAM_DISTRIBUTIONS,
+ 190:         n_iter=N_SEARCH_ITER,
+ 191:         scoring="neg_root_mean_squared_error",
+ 192:         cv=inner_cv,
+ 193:         random_state=RANDOM_SEED,
+ 194:         n_jobs=N_JOBS,
+ 195:         refit=True,
+ 196:         return_train_score=False,
+ 197:         verbose=0,
+    ...
+ 236:     params = {
+ 237:         "model": model_name,
+ 238:         "fold": fold,
+ 239:         "best_inner_RMSE_Mg_ha": float(-search.best_score_),
+ 240:         **{
+ 241:             k.replace("spline__", "").replace("ridge__", ""): v
+ 242:             for k, v in search.best_params_.items()
+ 243:         },
+ 244:     }
+ 245: 
+ 246:     pred_df = test.copy()
+ 247:     pred_df["outer_fold"] = fold
+ 248:     pred_df["model"] = model_name
+ 249:     pred_df["observed_agbd"] = y_test
+ 250:     pred_df["predicted_agbd"] = pred
+ 251:     pred_df["residual_observed_minus_predicted"] = y_test - pred
+    ...
+ 288:             mean_row[c] = float(g[c].mean())
+ 289:             sd_row[c] = float(g[c].std(ddof=1))
+ 290:         rows.extend([mean_row, sd_row])
+ 291:     return pd.DataFrame(rows)
+ 292: 
+ 293: def comparison_table(gam_pooled):
+ 294:     rows = []
+ 295: 
+ 296:     sources = [
+ 297:         ("baseline", PROJECT_ROOT / "06_Results" / "Baseline" / "Tables" / "baseline_overall_metrics.csv"),
+ 298:         ("rf", PROJECT_ROOT / "06_Results" / "Random_Forest" / "Tables" / "RF_overall_metrics.csv"),
+ 299:         ("xgb", PROJECT_ROOT / "06_Results" / "XGBoost" / "Tables" / "XGB_overall_metrics.csv"),
+ 300:         ("svr", PROJECT_ROOT / "06_Results" / "SVR" / "Tables" / "SVR_overall_metrics.csv"),
+ 301:         ("et", PROJECT_ROOT / "06_Results" / "Extra_Trees" / "Tables" / "ET_overall_metrics.csv"),
+ 302:         ("mlp", PROJECT_ROOT / "06_Results" / "DNN_MLP" / "Tables" / "MLP_overall_metrics.csv"),
+ 303:     ]
+    ...
+ 331:                     "R2": r["R2"],
+ 332:                     "Bias_Mg_ha": r["Bias_Mg_ha"],
+ 333:                     "Pearson_r": r["Pearson_r"],
+ 334:                 })
+ 335: 
+ 336:     for _, r in gam_pooled.iterrows():
+ 337:         rows.append({
+ 338:             "model": r["model"],
+ 339:             "RMSE_Mg_ha": r["RMSE_Mg_ha"],
+ 340:             "MAE_Mg_ha": r["MAE_Mg_ha"],
+ 341:             "R2": r["R2"],
+ 342:             "Bias_Mg_ha": r["Bias_Mg_ha"],
+ 343:             "Pearson_r": r["Pearson_r"],
+ 344:         })
+ 345: 
+ 346:     out = pd.DataFrame(rows)
+ 347:     if len(out):
+ 348:         out.to_csv(TABLE_DIR / "final_model_comparison_through_GAM.csv", index=False)
+ 349:     return out
+ 350: 
+ 351: def make_main_smooth_curves(fitted_models, train_refs, features):
+ 352:     """
+ 353:     For the 4P MAIN GAM-style model only:
+ 354:     vary one predictor at a time from its pooled 5th to 95th percentile,
+ 355:     hold all other predictors at pooled training medians,
+ 356:     predict with each outer-fold fitted model, then summarize mean ± SD.
+ 357:     """
+ 358:     pooled_train = pd.concat(train_refs, ignore_index=True)
+ 359:     medians = pooled_train[features].median()
+ 360:     curves = []
+ 361: 
+ 362:     for feat in features:
+ 363:         q05 = float(pooled_train[feat].quantile(0.05))
+    ...
+ 387:             "upper_1sd": mean_pred + sd_pred,
+ 388:         })
+ 389:         curves.append(cdf)
+ 390: 
+ 391:         fig, ax = plt.subplots(figsize=(7.2, 5.4))
+ 392:         ax.plot(grid, mean_pred, linewidth=1.8, label="Mean GAM response")
+ 393:         ax.fill_between(
+ 394:             grid,
+ 395:             mean_pred - sd_pred,
+ 396:             mean_pred + sd_pred,
+ 397:             alpha=0.20,
+ 398:             label="±1 SD across outer-fold fits",
+ 399:         )
+ 400:         ax.set_xlabel(feat)
+ 401:         ax.set_ylabel("Predicted AGBD (Mg/ha)")
+ 402:         ax.set_title(f"GAM smooth response — {feat}", pad=12)
+ 403:         ax.legend(loc="upper left", bbox_to_anchor=(1.02, 1.0), frameon=False)
+ 404:         fig.tight_layout()
+ 405:         fig.savefig(CURVE_DIR / f"GAM_smooth_{feat}.png", dpi=450, bbox_inches="tight")
+ 406:         fig.savefig(CURVE_DIR / f"GAM_smooth_{feat}.pdf", bbox_inches="tight")
+ 407:         plt.close(fig)
+ 408: 
+ 409:     curves = pd.concat(curves, ignore_index=True)
+ 410:     curves.to_csv(TABLE_DIR / "GAM_main_smooth_response_curves.csv", index=False)
+ 411:     return curves
+ 412: 
+ 413: def save_figures(oof, fold_metrics, perm_summary, comparison):
+ 414:     main = oof[oof["model"] == "GAM_4P_MAIN"].copy()
+ 415: 
+ 416:     fig, ax = plt.subplots(figsize=(7.4, 6.2))
+ 417:     ax.scatter(main["observed_agbd"], main["predicted_agbd"], s=16, alpha=0.45)
+ 418:     lo = float(min(main["observed_agbd"].min(), main["predicted_agbd"].min()))
+ 419:     hi = float(max(main["observed_agbd"].max(), main["predicted_agbd"].max()))
+ 420:     ax.plot([lo, hi], [lo, hi], linestyle="--", linewidth=1.2)
+ 421:     ax.set_xlabel("Observed GEDI AGBD (Mg/ha)")
+ 422:     ax.set_ylabel("Predicted AGBD (Mg/ha)")
+ 423:     ax.set_title("GAM-style penalized spline (4 predictors) — pooled spatial-CV predictions", pad=12)
+ 424:     fig.tight_layout()
+ 425:     fig.savefig(FIG_DIR / "GAM4_observed_vs_predicted.png", dpi=450, bbox_inches="tight")
+ 426:     fig.savefig(FIG_DIR / "GAM4_observed_vs_predicted.pdf", bbox_inches="tight")
+ 427:     plt.close(fig)
+ 428: 
+ 429:     fig, ax = plt.subplots(figsize=(7.4, 6.0))
+ 430:     ax.scatter(main["predicted_agbd"], main["residual_observed_minus_predicted"], s=16, alpha=0.45)
+ 431:     ax.axhline(0.0, linestyle="--", linewidth=1.2)
+ 432:     ax.set_xlabel("Predicted AGBD (Mg/ha)")
+ 433:     ax.set_ylabel("Residual: observed − predicted (Mg/ha)")
+ 434:     ax.set_title("GAM-style penalized spline (4 predictors) — residual diagnostic", pad=12)
+ 435:     fig.tight_layout()
+ 436:     fig.savefig(FIG_DIR / "GAM4_residuals_vs_predicted.png", dpi=450, bbox_inches="tight")
+ 437:     fig.savefig(FIG_DIR / "GAM4_residuals_vs_predicted.pdf", bbox_inches="tight")
+ 438:     plt.close(fig)
+ 439: 
+ 440:     pivot = fold_metrics.pivot(index="fold", columns="model", values="RMSE_Mg_ha")
+ 441:     fig, ax = plt.subplots(figsize=(7.4, 5.3))
+ 442:     x = np.arange(len(pivot.index))
+ 443:     width = 0.36
+ 444:     cols = list(pivot.columns)
+ 445:     for i, c in enumerate(cols):
+ 446:         offset = (i - (len(cols)-1)/2) * width
+ 447:         ax.bar(x + offset, pivot[c].values, width=width, label=c)
+ 448:     ax.set_xticks(x)
+ 449:     ax.set_xticklabels([str(v) for v in pivot.index])
+ 450:     ax.set_xlabel("Outer spatial fold")
+ 451:     ax.set_ylabel("RMSE (Mg/ha)")
+ 452:     ax.set_title("GAM sensitivity — RMSE by outer fold", pad=12)
+ 453:     ax.legend(loc="upper left", bbox_to_anchor=(1.02, 1.0), frameon=False)
+ 454:     fig.tight_layout()
+ 455:     fig.savefig(FIG_DIR / "GAM_4P_vs_3P_RMSE_by_fold.png", dpi=450, bbox_inches="tight")
+ 456:     fig.savefig(FIG_DIR / "GAM_4P_vs_3P_RMSE_by_fold.pdf", bbox_inches="tight")
+ 457:     plt.close(fig)
+ 458: 
+ 459:     pfi = perm_summary[
+ 460:         perm_summary["model"] == "GAM_4P_MAIN"
+ 461:     ].sort_values("mean_permutation_RMSE_increase", ascending=True)
+ 462: 
+ 463:     if len(pfi):
+ 464:         fig, ax = plt.subplots(figsize=(7.0, 5.2))
+ 465:         ax.barh(
+ 466:             pfi["predictor"],
+ 467:             pfi["mean_permutation_RMSE_increase"],
+ 468:             xerr=pfi["sd_across_folds"].fillna(0.0),
+ 469:         )
+ 470:         ax.set_xlabel("Mean permutation importance (RMSE increase)")
+ 471:         ax.set_ylabel("Predictor")
+ 472:         ax.set_title("GAM-style model (4 predictors) — spatial-CV permutation importance", pad=12)
+ 473:         fig.tight_layout()
+ 474:         fig.savefig(FIG_DIR / "GAM4_permutation_importance.png", dpi=450, bbox_inches="tight")
+ 475:         fig.savefig(FIG_DIR / "GAM4_permutation_importance.pdf", bbox_inches="tight")
+ 476:         plt.close(fig)
+ 477: 
+ 478:     if len(comparison) >= 2:
+ 479:         fig, ax = plt.subplots(figsize=(12.0, 5.8))
+ 480:         ax.bar(comparison["model"], comparison["R2"])
+ 481:         ax.axhline(0.0, linestyle="--", linewidth=1.0)
+ 482:         ax.set_ylabel("Pooled out-of-fold R²")
+ 483:         ax.set_title("Final model comparison through GAM under identical spatial validation", pad=12)
+ 484:         ax.tick_params(axis="x", rotation=30)
+ 485:         fig.tight_layout()
+ 486:         fig.savefig(FIG_DIR / "final_model_comparison_through_GAM_R2.png", dpi=450, bbox_inches="tight")
+ 487:         fig.savefig(FIG_DIR / "final_model_comparison_through_GAM_R2.pdf", bbox_inches="tight")
+ 488:         plt.close(fig)
+ 489: 
+ 490: def main():
+ 491:     print("=" * 72)
+ 492:     print("PHASE 7G — GAM-STYLE PENALIZED ADDITIVE SPLINE REGRESSION")
+ 493:     print("=" * 72)
+ 494:     print("Implementation: separate univariate spline basis per predictor + Ridge penalty")
+ 495:     print("No predictor interactions are included.")
+ 496:     print("Outer validation: frozen 5-fold spatial CV + 500 m training buffer")
+ 497:     print(f"Inner tuning: {N_INNER_FOLDS}-fold GroupKFold by 3 km cv_block_id")
+ 498:     print(f"Randomized search iterations: {N_SEARCH_ITER}")
+ 499:     print(f"Random seed: {RANDOM_SEED}")
+ 500:     print("Windows-safe execution: n_jobs=1")
+ 501: 
+ 502:     metrics_all = []
+ 503:     perm_all = []
+ 504:     params_all = []
+ 505:     oof_all = []
+ 506:     provenance_all = []
+ 507: 
+    ...
+ 558:                 "test_sha256": sha256_file(test_path),
+ 559:             })
+ 560: 
+ 561:             joblib.dump(best, MODEL_DIR / f"{model_name}_outer_fold_{fold}.joblib")
+ 562: 
+ 563:             if model_name == "GAM_4P_MAIN":
+ 564:                 main_models[fold] = best
+ 565:                 main_train_refs.append(train[features].copy())
+ 566: 
+ 567:             print(
+ 568:                 f"Fold {fold}: train={len(train):,}, test={len(test):,}, "
+ 569:                 f"inner RMSE={m['inner_best_RMSE_Mg_ha']:.2f}, "
+ 570:                 f"outer RMSE={m['RMSE_Mg_ha']:.2f}, "
+ 571:                 f"MAE={m['MAE_Mg_ha']:.2f}, "
+ 572:                 f"R2={m['R2']:.3f}, r={m['Pearson_r']:.3f}"
+ 573:             )
+    ...
+ 590:             min_across_folds=("mean_permutation_RMSE_increase", "min"),
+ 591:             max_across_folds=("mean_permutation_RMSE_increase", "max"),
+ 592:         )
+ 593:     )
+ 594: 
+ 595:     fold_metrics.to_csv(TABLE_DIR / "GAM_fold_metrics.csv", index=False)
+ 596:     overall.to_csv(TABLE_DIR / "GAM_overall_metrics.csv", index=False)
+ 597:     best_params.to_csv(TABLE_DIR / "GAM_best_parameters_by_fold.csv", index=False)
+ 598:     oof.to_csv(TABLE_DIR / "GAM_OOF_predictions.csv", index=False)
+ 599:     permutation.to_csv(TABLE_DIR / "GAM_permutation_importance_by_fold.csv", index=False)
+ 600:     perm_summary.to_csv(TABLE_DIR / "GAM_permutation_importance_summary.csv", index=False)
+ 601:     provenance.to_csv(TABLE_DIR / "GAM_input_provenance.csv", index=False)
+ 602: 
+ 603:     comparison = comparison_table(pooled)
+ 604:     save_figures(oof, fold_metrics, perm_summary, comparison)
+ 605: 
+ 606:     main_features = FEATURE_SETS["GAM_4P_MAIN"]
+ 607:     make_main_smooth_curves(main_models, main_train_refs, main_features)
+ 608: 
+ 609:     main_row = pooled[pooled["model"] == "GAM_4P_MAIN"].iloc[0]
+ 610:     sens_row = pooled[pooled["model"] == "GAM_3P_SENSITIVITY"].iloc[0]
+ 611: 
+ 612:     report = [
+ 613:         "PHASE 7G — GAM-STYLE PENALIZED ADDITIVE SPLINE REGRESSION",
+ 614:         "=" * 72,
+ 615:         "Implementation: separate univariate spline basis per predictor + Ridge penalty.",
+ 616:         "No cross-predictor interactions are included.",
+ 617:         "This is a GAM-style penalized additive spline model implemented entirely in scikit-learn.",
+ 618:         "Outer validation: frozen 5-fold spatial block CV with 500 m training exclusion buffer.",
+ 619:         f"Inner tuning: {N_INNER_FOLDS}-fold GroupKFold grouped by cv_block_id.",
+ 620:         f"Randomized search iterations per outer fold: {N_SEARCH_ITER}.",
+ 621:         f"Random seed: {RANDOM_SEED}.",
+ 622:         "",
+ 623:         "Primary model:",
+ 624:         "GAM_4P_MAIN = s(HH_dB) + s(HV_dB) + s(HH_minus_HV) + s(HV_SD)",
+ 625:         "",
+ 626:         "Sensitivity model:",
+ 627:         "GAM_3P_SENSITIVITY = s(HH_dB) + s(HV_dB) + s(HV_SD)",
+ 628:         "",
+ 629:         "Pooled out-of-fold performance:",
+ 630:         pooled.to_string(index=False),
+ 631:         "",
+ 632:         "Per-fold performance:",
+ 633:         fold_metrics.to_string(index=False),
+ 634:         "",
+ 635:         "Best spline/penalty hyperparameters by outer fold:",
+ 636:         best_params.to_string(index=False),
+ 637:         "",
+    ...
+ 643:         "from its pooled training 5th to 95th percentile while holding other predictors at",
+ 644:         "their pooled training medians; curves summarize mean ±1 SD across the five outer-fold fits.",
+ 645:         "",
+ 646:         "Rules:",
+ 647:         "- Outer folds and 500 m buffer are unchanged.",
+ 648:         "- Spline complexity and Ridge penalty are tuned using training data only.",
+ 649:         "- Test-fold permutation importance is descriptive only.",
+ 650:         "- GAM response curves are interpretive diagnostics, not an additional tuning step.",
+ 651:         "- This is the final additional model before saturation/temporal-mismatch diagnosis.",
+ 652:     ]
+ 653: 
+ 654:     (OUT_DIR / "GAM_QC_REPORT.txt").write_text("\n".join(report), encoding="utf-8")
+ 655: 
+ 656:     append_log([
+ 657:         "Script: phase7g_gam.py",
+ 658:         "Implementation: additive univariate spline bases + Ridge penalty",
+ 659:         "Primary model: GAM_4P_MAIN",
+ 660:         "Sensitivity model: GAM_3P_SENSITIVITY",
+ 661:         f"Inner tuning: {N_INNER_FOLDS}-fold GroupKFold by cv_block_id",
+ 662:         f"Search iterations: {N_SEARCH_ITER}",
+ 663:         f"Random seed: {RANDOM_SEED}",
+ 664:         f"GAM_4P pooled OOF RMSE: {main_row['RMSE_Mg_ha']:.4f} Mg/ha",
+ 665:         f"GAM_4P pooled OOF R2: {main_row['R2']:.6f}",
+ 666:         f"GAM_3P pooled OOF RMSE: {sens_row['RMSE_Mg_ha']:.4f} Mg/ha",
+ 667:         f"GAM_3P pooled OOF R2: {sens_row['R2']:.6f}",
+ 668:     ])
+ 669: 
+ 670:     print("\n" + "=" * 72)
+ 671:     print("PHASE 7G COMPLETE — GAM REVIEW REQUIRED")
+ 672:     print("=" * 72)
+ 673: 
+ 674:     print("\nPrimary GAM_4P_MAIN pooled OOF:")
+ 675:     print(f"  RMSE: {main_row['RMSE_Mg_ha']:.2f} Mg/ha")
+ 676:     print(f"  MAE:  {main_row['MAE_Mg_ha']:.2f} Mg/ha")
+ 677:     print(f"  R2:   {main_row['R2']:.3f}")
+ 678:     print(f"  r:    {main_row['Pearson_r']:.3f}")
+ 679: 
+ 680:     print("\nGAM_3P_SENSITIVITY pooled OOF:")
+ 681:     print(f"  RMSE: {sens_row['RMSE_Mg_ha']:.2f} Mg/ha")
+ 682:     print(f"  MAE:  {sens_row['MAE_Mg_ha']:.2f} Mg/ha")
+ 683:     print(f"  R2:   {sens_row['R2']:.3f}")
+ 684:     print(f"  r:    {sens_row['Pearson_r']:.3f}")
+ 685: 
+ 686:     print("\nCreated:")
+ 687:     print(f" - {TABLE_DIR / 'GAM_fold_metrics.csv'}")
+ 688:     print(f" - {TABLE_DIR / 'GAM_overall_metrics.csv'}")
+ 689:     print(f" - {TABLE_DIR / 'GAM_best_parameters_by_fold.csv'}")
+ 690:     print(f" - {TABLE_DIR / 'GAM_OOF_predictions.csv'}")
+ 691:     print(f" - {TABLE_DIR / 'GAM_permutation_importance_summary.csv'}")
+ 692:     print(f" - {TABLE_DIR / 'GAM_main_smooth_response_curves.csv'}")
+ 693:     print(f" - {TABLE_DIR / 'final_model_comparison_through_GAM.csv'}")
+ 694:     print(f" - {OUT_DIR / 'GAM_QC_REPORT.txt'}")
+ 695:     print(f" - {FIG_DIR / 'GAM4_observed_vs_predicted.png'}")
+ 696:     print(f" - {FIG_DIR / 'GAM4_residuals_vs_predicted.png'}")
+ 697:     print(f" - {FIG_DIR / 'GAM_4P_vs_3P_RMSE_by_fold.png'}")
+ 698:     print(f" - {FIG_DIR / 'GAM4_permutation_importance.png'}")
+ 699:     print(f" - {FIG_DIR / 'final_model_comparison_through_GAM_R2.png'}")
+ 700:     print(f" - Smooth-response PNG/PDF files in {CURVE_DIR}")
+ 701: 
+ 702:     print("\nIMPORTANT:")
+ 703:     print("After this run, upload the Phase-7G outputs for review.")
+ 704:     input("\nPress Enter to close...")
+ 705: 
+ 706: if __name__ == "__main__":
+ 707:     main()
+
+
+====================================================================================================
+FILE: D:\NISAR_Mangrove_Paper\05_ML_DL\Predictor_Expansion\Phase8C4_Scripts\phase8c4_expanded9p_spatial_cv.py
+====================================================================================================
+
+IMPORTS
+----------------------------------------------------------------------------------------------------
+   1: from pathlib import Path
+   2: from datetime import datetime
+   3: import hashlib
+   4: import json
+   5: import os
+   6: import sys
+   7: import traceback
+   8: import warnings
+  16: import numpy as np
+  17: import pandas as pd
+  18: from scipy.stats import pearsonr, spearmanr
+  19: from sklearn.linear_model import LinearRegression
+  20: from sklearn.ensemble import ExtraTreesRegressor
+  21: from sklearn.neural_network import MLPRegressor
+  22: from sklearn.pipeline import Pipeline
+  23: from sklearn.preprocessing import StandardScaler
+  24: from sklearn.model_selection import GroupKFold, ParameterSampler
+  25: from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+  26: import matplotlib.pyplot as plt
+
+GLOBAL SETTINGS / PARAMETER SPACES
+----------------------------------------------------------------------------------------------------
+  81: RANDOM_SEED = 42
+
+  82: INNER_SPLITS = 4
+
+  97: FEATURES = [
+  98:     "HH_dB",
+  99:     "HV_dB",
+ 100:     "HV_SD",
+ 101:     "HH_SD_dB_3x3",
+ 102:     "HH_MeanLin_dB_9x9",
+ 103:     "HV_MeanLin_dB_9x9",
+ 104:     "HH_SD_dB_9x9",
+ 105:     "HV_SD_dB_9x9",
+ 106:     "PolContrast_SD_dB_9x9",
+ 107: ]
+
+ 110: ET_PARAM_SPACE = {
+ 111:     "n_estimators": [400, 700, 1000],
+ 112:     "max_depth": [6, 8, 12, None],
+ 113:     "min_samples_split": [2, 5, 10, 20],
+ 114:     "min_samples_leaf": [1, 3, 6, 10],
+ 115:     "max_features": ["sqrt", 0.5, 0.8, 1.0],
+ 116:     "bootstrap": [True, False],
+ 117: }
+
+ 120: MLP_PARAM_SPACE = {
+ 121:     "hidden_layer_sizes": [(32,), (64,), (32, 16), (64, 32)],
+ 122:     "activation": ["relu", "tanh"],
+ 123:     "alpha": [0.001, 0.01, 0.1, 1.0],
+ 124:     "learning_rate_init": [0.0005, 0.001, 0.003],
+ 125: }
+
+ 127: ET_N_ITER = 18
+
+ 128: MLP_N_ITER = 12
+
+
+RELEVANT FUNCTIONS
+----------------------------------------------------------------------------------------------------
+
+FUNCTION: metric_row
+ 140: def metric_row(y, p, model, fold=None, train_n=None, test_n=None):
+ 141:     y = np.asarray(y, float)
+ 142:     p = np.asarray(p, float)
+ 143:     rmse = float(np.sqrt(mean_squared_error(y, p)))
+ 144:     mae = float(mean_absolute_error(y, p))
+ 145:     r2 = float(r2_score(y, p))
+ 146:     bias = float(np.mean(p - y))
+ 147:     mean_y = float(np.mean(y))
+ 148:     rrmse = float(rmse / mean_y * 100.0) if mean_y != 0 else np.nan
+ 149: 
+ 150:     if len(y) >= 3 and np.std(y) > 0 and np.std(p) > 0:
+ 151:         pr = float(pearsonr(y, p).statistic)
+ 152:         sr = float(spearmanr(y, p).statistic)
+ 153:     else:
+ 154:         pr = np.nan
+ 155:         sr = np.nan
+ 156: 
+ 157:     obs_sd = float(np.std(y, ddof=1))
+ 158:     pred_sd = float(np.std(p, ddof=1))
+ 159: 
+ 160:     return {
+ 161:         "model": model,
+ 162:         "fold": fold,
+ 163:         "n": len(y),
+ 164:         "train_n": train_n,
+ 165:         "test_n": test_n,
+ 166:         "RMSE_Mg_ha": rmse,
+ 167:         "MAE_Mg_ha": mae,
+ 168:         "R2": r2,
+ 169:         "Bias_Mg_ha": bias,
+ 170:         "rRMSE_percent": rrmse,
+ 171:         "Pearson_r": pr,
+ 172:         "Spearman_rho": sr,
+ 173:         "observed_mean": mean_y,
+ 174:         "predicted_mean": float(np.mean(p)),
+ 175:         "observed_sd": obs_sd,
+ 176:         "predicted_sd": pred_sd,
+ 177:         "pred_to_obs_SD_ratio": pred_sd / obs_sd if obs_sd > 0 else np.nan,
+ 178:     }
+
+
+FUNCTION: grouped_rmse_linear
+ 196: def grouped_rmse_linear(X, y, groups):
+ 197:     cv = GroupKFold(n_splits=INNER_SPLITS)
+ 198:     vals = []
+ 199:     for tr, va in cv.split(X, y, groups):
+ 200:         m = LinearRegression()
+ 201:         m.fit(X[tr], y[tr])
+ 202:         pred = m.predict(X[va])
+ 203:         vals.append(np.sqrt(mean_squared_error(y[va], pred)))
+ 204:     return float(np.mean(vals))
+
+
+FUNCTION: tune_et
+ 206: def tune_et(X, y, groups, fold):
+ 207:     candidates = list(ParameterSampler(
+ 208:         ET_PARAM_SPACE, n_iter=ET_N_ITER,
+ 209:         random_state=RANDOM_SEED + fold
+ 210:     ))
+ 211:     cv = GroupKFold(n_splits=INNER_SPLITS)
+ 212: 
+ 213:     best = None
+ 214:     rows = []
+ 215: 
+ 216:     for ci, params in enumerate(candidates, start=1):
+ 217:         rmses = []
+ 218:         for tr, va in cv.split(X, y, groups):
+ 219:             m = ExtraTreesRegressor(
+ 220:                 **params,
+ 221:                 random_state=RANDOM_SEED,
+ 222:                 n_jobs=1,
+ 223:             )
+ 224:             m.fit(X[tr], y[tr])
+ 225:             pred = m.predict(X[va])
+ 226:             rmses.append(np.sqrt(mean_squared_error(y[va], pred)))
+ 227: 
+ 228:         mean_rmse = float(np.mean(rmses))
+ 229:         row = {
+ 230:             "outer_fold": fold,
+ 231:             "candidate": ci,
+ 232:             "mean_inner_RMSE": mean_rmse,
+ 233:             "params_json": json.dumps(params, sort_keys=True),
+ 234:         }
+ 235:         rows.append(row)
+ 236: 
+ 237:         if best is None or mean_rmse < best["mean_inner_RMSE"]:
+ 238:             best = {**row, "params": params}
+ 239: 
+ 240:     return best, pd.DataFrame(rows)
+
+
+FUNCTION: make_mlp
+ 242: def make_mlp(params):
+ 243:     return Pipeline([
+ 244:         ("scale", StandardScaler()),
+ 245:         ("mlp", MLPRegressor(
+ 246:             hidden_layer_sizes=params["hidden_layer_sizes"],
+ 247:             activation=params["activation"],
+ 248:             alpha=params["alpha"],
+ 249:             learning_rate_init=params["learning_rate_init"],
+ 250:             solver="adam",
+ 251:             max_iter=1500,
+ 252:             early_stopping=False,
+ 253:             random_state=RANDOM_SEED,
+ 254:         )),
+ 255:     ])
+
+
+FUNCTION: tune_mlp
+ 257: def tune_mlp(X, y, groups, fold):
+ 258:     candidates = list(ParameterSampler(
+ 259:         MLP_PARAM_SPACE, n_iter=MLP_N_ITER,
+ 260:         random_state=RANDOM_SEED + 100 + fold
+ 261:     ))
+ 262:     cv = GroupKFold(n_splits=INNER_SPLITS)
+ 263: 
+ 264:     best = None
+ 265:     rows = []
+ 266: 
+ 267:     for ci, params in enumerate(candidates, start=1):
+ 268:         rmses = []
+ 269:         for tr, va in cv.split(X, y, groups):
+ 270:             m = make_mlp(params)
+ 271:             m.fit(X[tr], y[tr])
+ 272:             pred = m.predict(X[va])
+ 273:             rmses.append(np.sqrt(mean_squared_error(y[va], pred)))
+ 274: 
+ 275:         mean_rmse = float(np.mean(rmses))
+ 276:         safe_params = {
+ 277:             k: (list(v) if isinstance(v, tuple) else v)
+ 278:             for k, v in params.items()
+ 279:         }
+ 280:         row = {
+ 281:             "outer_fold": fold,
+ 282:             "candidate": ci,
+ 283:             "mean_inner_RMSE": mean_rmse,
+ 284:             "params_json": json.dumps(safe_params, sort_keys=True),
+ 285:         }
+ 286:         rows.append(row)
+ 287: 
+ 288:         if best is None or mean_rmse < best["mean_inner_RMSE"]:
+ 289:             best = {**row, "params": params}
+ 290: 
+ 291:     return best, pd.DataFrame(rows)
+
+
+FUNCTION: class_metrics
+ 328: def class_metrics(oof):
+ 329:     bins = [0, 50, 100, np.inf]
+ 330:     labels = ["<50", "50-<100", ">=100"]
+ 331:     d = oof.copy()
+ 332:     d["AGBD_regime"] = pd.cut(
+ 333:         d["observed_agbd"], bins=bins, labels=labels,
+ 334:         right=False, include_lowest=True
+ 335:     )
+ 336:     rows = []
+ 337:     for (model, reg), g in d.groupby(["model", "AGBD_regime"], observed=False):
+ 338:         if len(g) == 0:
+ 339:             continue
+ 340:         r = metric_row(g["observed_agbd"], g["predicted_agbd"], model)
+ 341:         r["AGBD_regime"] = str(reg)
+ 342:         rows.append(r)
+ 343:     return pd.DataFrame(rows)
+
+
+MODEL / CV / SEARCH CONTEXT
+----------------------------------------------------------------------------------------------------
+  14: os.environ["NUMEXPR_NUM_THREADS"] = "1"
+  15: 
+  16: import numpy as np
+  17: import pandas as pd
+  18: from scipy.stats import pearsonr, spearmanr
+  19: from sklearn.linear_model import LinearRegression
+  20: from sklearn.ensemble import ExtraTreesRegressor
+  21: from sklearn.neural_network import MLPRegressor
+  22: from sklearn.pipeline import Pipeline
+  23: from sklearn.preprocessing import StandardScaler
+  24: from sklearn.model_selection import GroupKFold, ParameterSampler
+  25: from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+  26: import matplotlib.pyplot as plt
+  27: 
+  28: warnings.filterwarnings("ignore", category=RuntimeWarning)
+  29: 
+  30: # ============================================================
+  31: # PHASE 8C.4 — CONTROLLED SPATIAL-CV RERUN WITH LOCKED 9P FEATURE SET
+  32: # ============================================================
+  33: PROJECT = Path(r"D:\NISAR_Mangrove_Paper")
+  34: 
+    ...
+ 192:             f"Missing fold {fold} buffered files:\n{train}\n{test}"
+ 193:         )
+ 194:     return train, test
+ 195: 
+ 196: def grouped_rmse_linear(X, y, groups):
+ 197:     cv = GroupKFold(n_splits=INNER_SPLITS)
+ 198:     vals = []
+ 199:     for tr, va in cv.split(X, y, groups):
+ 200:         m = LinearRegression()
+ 201:         m.fit(X[tr], y[tr])
+ 202:         pred = m.predict(X[va])
+ 203:         vals.append(np.sqrt(mean_squared_error(y[va], pred)))
+ 204:     return float(np.mean(vals))
+ 205: 
+ 206: def tune_et(X, y, groups, fold):
+ 207:     candidates = list(ParameterSampler(
+ 208:         ET_PARAM_SPACE, n_iter=ET_N_ITER,
+ 209:         random_state=RANDOM_SEED + fold
+ 210:     ))
+ 211:     cv = GroupKFold(n_splits=INNER_SPLITS)
+ 212: 
+ 213:     best = None
+ 214:     rows = []
+ 215: 
+ 216:     for ci, params in enumerate(candidates, start=1):
+ 217:         rmses = []
+ 218:         for tr, va in cv.split(X, y, groups):
+ 219:             m = ExtraTreesRegressor(
+ 220:                 **params,
+ 221:                 random_state=RANDOM_SEED,
+ 222:                 n_jobs=1,
+ 223:             )
+ 224:             m.fit(X[tr], y[tr])
+ 225:             pred = m.predict(X[va])
+ 226:             rmses.append(np.sqrt(mean_squared_error(y[va], pred)))
+ 227: 
+ 228:         mean_rmse = float(np.mean(rmses))
+ 229:         row = {
+    ...
+ 239: 
+ 240:     return best, pd.DataFrame(rows)
+ 241: 
+ 242: def make_mlp(params):
+ 243:     return Pipeline([
+ 244:         ("scale", StandardScaler()),
+ 245:         ("mlp", MLPRegressor(
+ 246:             hidden_layer_sizes=params["hidden_layer_sizes"],
+ 247:             activation=params["activation"],
+ 248:             alpha=params["alpha"],
+ 249:             learning_rate_init=params["learning_rate_init"],
+ 250:             solver="adam",
+ 251:             max_iter=1500,
+ 252:             early_stopping=False,
+ 253:             random_state=RANDOM_SEED,
+ 254:         )),
+ 255:     ])
+ 256: 
+ 257: def tune_mlp(X, y, groups, fold):
+ 258:     candidates = list(ParameterSampler(
+ 259:         MLP_PARAM_SPACE, n_iter=MLP_N_ITER,
+ 260:         random_state=RANDOM_SEED + 100 + fold
+ 261:     ))
+ 262:     cv = GroupKFold(n_splits=INNER_SPLITS)
+ 263: 
+ 264:     best = None
+ 265:     rows = []
+ 266: 
+ 267:     for ci, params in enumerate(candidates, start=1):
+ 268:         rmses = []
+ 269:         for tr, va in cv.split(X, y, groups):
+ 270:             m = make_mlp(params)
+ 271:             m.fit(X[tr], y[tr])
+ 272:             pred = m.predict(X[va])
+    ...
+ 480:         groups = train["cv_block_id"].to_numpy()
+ 481: 
+ 482:         # Linear
+ 483:         print("  Linear 9P...")
+ 484:         lin = Pipeline([
+ 485:             ("scale", StandardScaler()),
+ 486:             ("model", LinearRegression())
+ 487:         ])
+ 488:         lin.fit(Xtr, ytr)
+ 489:         pred = lin.predict(Xte)
+ 490:         m = metric_row(
+ 491:             yte, pred, "EXPANDED_Linear_9P",
+ 492:             fold=fold, train_n=len(train), test_n=len(test)
+ 493:         )
+ 494:         fold_rows.append(m)
+ 495:         oof_parts.append(pd.DataFrame({
+ 496:             "shot_number": test["shot_number"].to_numpy(),
+    ...
+ 503: 
+ 504:         # Extra Trees
+ 505:         print(f"  Extra Trees 9P — inner grouped search ({ET_N_ITER} candidates)...")
+ 506:         et_best, et_trace = tune_et(Xtr, ytr, groups, fold)
+ 507:         et_tune_rows.append(et_trace)
+ 508:         et = ExtraTreesRegressor(
+ 509:             **et_best["params"],
+ 510:             random_state=RANDOM_SEED,
+ 511:             n_jobs=1,
+ 512:         )
+ 513:         et.fit(Xtr, ytr)
+ 514:         pred = et.predict(Xte)
+ 515:         m = metric_row(
+ 516:             yte, pred, "EXPANDED_ET_9P",
+ 517:             fold=fold, train_n=len(train), test_n=len(test)
+ 518:         )
+    ...
+ 675:         "- Same frozen five outer spatial folds.",
+ 676:         "- Same 3 km block design.",
+ 677:         "- Same 500 m training exclusion buffer.",
+ 678:         "- Outer test folds untouched.",
+ 679:         "- ET and MLP hyperparameters tuned only within buffered training data using",
+ 680:         "  4-fold GroupKFold by cv_block_id.",
+ 681:         "- Linear model has no response-based feature selection.",
+ 682:         "",
+ 683:         "EXPANDED 9P POOLED PERFORMANCE",
+ 684:         pooled.to_string(index=False),
+ 685:         "",
+ 686:         "ORIGINAL 3P REFERENCE PERFORMANCE",
+ 687:         old_pooled.to_string(index=False),
+ 688:         "",
+ 689:         "ORIGINAL 3P VS EXPANDED 9P",
+ 690:         comp.to_string(index=False),

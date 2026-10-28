@@ -1,0 +1,26 @@
+====================================================================================================
+C8 FINAL REVIEWER-VALIDATION PACKAGE QC
+====================================================================================================
+
+STATUS: PASS
+
+Final package files: 463
+Expected SHA256 manifest entries: 462
+
+Forbidden/raw files: 0
+>=100 MiB files: 0
+
+Module counts:
+C1_Independent_Validation: code=7, results=43
+C2_Spatial_Transferability: code=6, results=297
+C3_Temporal_Mismatch: code=7, results=33
+C4_GEDI_Uncertainty: code=2, results=14
+C5_Multiscale_Ablation: code=2, results=11
+C6_Support_Mixing: code=5, results=20
+C8_Reproducibility: code=4, results=7
+
+Raw source data copied: NO
+Scientific results modified: NO
+D:\new_nisar_data modified: NO
+
+The SHA256 manifest is generated after this report so that this report itself is included in the manifest.

@@ -1,0 +1,379 @@
+==========================================================================================
+C1 COMPACT HISTORICAL MODEL SPECIFICATIONS
+==========================================================================================
+
+==========================================================================================
+RF
+==========================================================================================
+FILE: D:\NISAR_Mangrove_Paper\05_ML_DL\RF\phase7b_random_forest.py
+EXISTS: True
+
+SETTINGS / SEARCH SPACES
+------------------------------------------------------------------------------------------
+FEATURE_SETS = {
+    "RF_4P_MAIN": ["HH_dB", "HV_dB", "HH_minus_HV", "HV_SD"],
+    "RF_3P_SENSITIVITY": ["HH_dB", "HV_dB", "HV_SD"],
+}
+
+N_OUTER_FOLDS = 5
+
+N_INNER_FOLDS = 4
+
+RANDOM_SEED = 42
+
+N_SEARCH_ITER = 18
+
+N_JOBS = -1
+
+PARAM_DISTRIBUTIONS = {
+    "n_estimators": [300, 500, 700, 900],
+    "max_depth": [None, 8, 12, 18, 24],
+    "min_samples_split": [2, 5, 10],
+    "min_samples_leaf": [1, 2, 4, 6],
+    "max_features": ["sqrt", 0.6, 0.8, 1.0],
+    "bootstrap": [True],
+}
+
+MODEL / SEARCH CONSTRUCTORS
+------------------------------------------------------------------------------------------
+
+[GroupKFold]
+GroupKFold(n_splits=N_INNER_FOLDS)
+
+[RandomForestRegressor]
+RandomForestRegressor(
+        random_state=RANDOM_SEED,
+        n_jobs=N_JOBS,
+        criterion="squared_error",
+    )
+
+[RandomizedSearchCV]
+RandomizedSearchCV(
+        estimator=base_rf,
+        param_distributions=PARAM_DISTRIBUTIONS,
+        n_iter=N_SEARCH_ITER,
+        scoring="neg_root_mean_squared_error",
+        cv=inner_cv,
+        random_state=RANDOM_SEED,
+        n_jobs=N_JOBS,
+        refit=True,
+        return_train_score=False,
+        verbose=0,
+    )
+
+
+==========================================================================================
+XGBOOST
+==========================================================================================
+FILE: D:\NISAR_Mangrove_Paper\05_ML_DL\XGBoost\phase7c_xgboost.py
+EXISTS: True
+
+SETTINGS / SEARCH SPACES
+------------------------------------------------------------------------------------------
+FEATURE_SETS = {
+    "XGB_4P_MAIN": ["HH_dB", "HV_dB", "HH_minus_HV", "HV_SD"],
+    "XGB_3P_SENSITIVITY": ["HH_dB", "HV_dB", "HV_SD"],
+}
+
+N_OUTER_FOLDS = 5
+
+N_INNER_FOLDS = 4
+
+RANDOM_SEED = 42
+
+N_SEARCH_ITER = 12
+
+N_JOBS_SEARCH = -1
+
+PARAM_DISTRIBUTIONS = {
+    "n_estimators": [200, 350, 500, 700],
+    "learning_rate": [0.02, 0.05, 0.08, 0.10],
+    "max_depth": [2, 3, 4, 5],
+    "min_child_weight": [1, 3, 5, 10],
+    "subsample": [0.70, 0.85, 1.00],
+    "colsample_bytree": [0.70, 0.85, 1.00],
+    "reg_alpha": [0.0, 0.1, 0.5, 1.0],
+    "reg_lambda": [1.0, 2.0, 5.0, 10.0],
+    "gamma": [0.0, 0.1, 0.5],
+}
+
+MODEL / SEARCH CONSTRUCTORS
+------------------------------------------------------------------------------------------
+
+[GroupKFold]
+GroupKFold(n_splits=N_INNER_FOLDS)
+
+[XGBRegressor]
+XGBRegressor(
+        objective="reg:squarederror",
+        eval_metric="rmse",
+        tree_method="hist",
+        random_state=RANDOM_SEED,
+        n_jobs=1,  # avoid CPU oversubscription inside parallelized search
+        verbosity=0,
+    )
+
+[RandomizedSearchCV]
+RandomizedSearchCV(
+        estimator=base_xgb,
+        param_distributions=PARAM_DISTRIBUTIONS,
+        n_iter=N_SEARCH_ITER,
+        scoring="neg_root_mean_squared_error",
+        cv=inner_cv,
+        random_state=RANDOM_SEED,
+        n_jobs=N_JOBS_SEARCH,
+        refit=True,
+        return_train_score=False,
+        verbose=0,
+    )
+
+
+==========================================================================================
+SVR
+==========================================================================================
+FILE: D:\NISAR_Mangrove_Paper\05_ML_DL\SVR\phase7d_svr.py
+EXISTS: True
+
+SETTINGS / SEARCH SPACES
+------------------------------------------------------------------------------------------
+FEATURE_SETS = {
+    "SVR_4P_MAIN": ["HH_dB", "HV_dB", "HH_minus_HV", "HV_SD"],
+    "SVR_3P_SENSITIVITY": ["HH_dB", "HV_dB", "HV_SD"],
+}
+
+N_OUTER_FOLDS = 5
+
+N_INNER_FOLDS = 4
+
+RANDOM_SEED = 42
+
+N_SEARCH_ITER = 24
+
+N_JOBS = -1
+
+PARAM_DISTRIBUTIONS = {
+    "svr__C": loguniform(1e-1, 1e3),
+    "svr__epsilon": loguniform(1e-2, 2e1),
+    "svr__gamma": loguniform(1e-3, 1e1),
+}
+
+MODEL / SEARCH CONSTRUCTORS
+------------------------------------------------------------------------------------------
+
+[GroupKFold]
+GroupKFold(n_splits=N_INNER_FOLDS)
+
+[RandomizedSearchCV]
+RandomizedSearchCV(
+        pipe,
+        PARAM_DISTRIBUTIONS,
+        n_iter=N_SEARCH_ITER,
+        scoring="neg_root_mean_squared_error",
+        cv=inner_cv,
+        random_state=RANDOM_SEED,
+        n_jobs=N_JOBS,
+        refit=True,
+        verbose=0,
+    )
+
+[StandardScaler]
+StandardScaler()
+
+[SVR]
+SVR(kernel="rbf")
+
+
+==========================================================================================
+EXTRA_TREES
+==========================================================================================
+FILE: D:\NISAR_Mangrove_Paper\05_ML_DL\ExtraTrees\phase7e_extra_trees.py
+EXISTS: True
+
+SETTINGS / SEARCH SPACES
+------------------------------------------------------------------------------------------
+FEATURE_SETS = {
+    "ET_4P_MAIN": ["HH_dB", "HV_dB", "HH_minus_HV", "HV_SD"],
+    "ET_3P_SENSITIVITY": ["HH_dB", "HV_dB", "HV_SD"],
+}
+
+N_OUTER_FOLDS = 5
+
+N_INNER_FOLDS = 4
+
+RANDOM_SEED = 42
+
+N_SEARCH_ITER = 18
+
+N_JOBS = -1
+
+PARAM_DISTRIBUTIONS = {
+    "n_estimators": [300, 500, 700, 900],
+    "max_depth": [None, 8, 12, 18, 24],
+    "min_samples_split": [2, 5, 10],
+    "min_samples_leaf": [1, 2, 4, 6],
+    "max_features": ["sqrt", 0.6, 0.8, 1.0],
+    "bootstrap": [False, True],
+}
+
+MODEL / SEARCH CONSTRUCTORS
+------------------------------------------------------------------------------------------
+
+[GroupKFold]
+GroupKFold(n_splits=N_INNER_FOLDS)
+
+[ExtraTreesRegressor]
+ExtraTreesRegressor(
+        random_state=RANDOM_SEED,
+        n_jobs=N_JOBS,
+        criterion="squared_error",
+    )
+
+[RandomizedSearchCV]
+RandomizedSearchCV(
+        estimator=base,
+        param_distributions=PARAM_DISTRIBUTIONS,
+        n_iter=N_SEARCH_ITER,
+        scoring="neg_root_mean_squared_error",
+        cv=inner_cv,
+        random_state=RANDOM_SEED,
+        n_jobs=N_JOBS,
+        refit=True,
+        return_train_score=False,
+        verbose=0,
+    )
+
+
+==========================================================================================
+MLP
+==========================================================================================
+FILE: D:\NISAR_Mangrove_Paper\05_ML_DL\DNN\phase7f_mlp_dnn.py
+EXISTS: True
+
+SETTINGS / SEARCH SPACES
+------------------------------------------------------------------------------------------
+FEATURE_SETS = {
+    "MLP_4P_MAIN": ["HH_dB", "HV_dB", "HH_minus_HV", "HV_SD"],
+    "MLP_3P_SENSITIVITY": ["HH_dB", "HV_dB", "HV_SD"],
+}
+
+N_OUTER_FOLDS = 5
+
+N_INNER_FOLDS = 4
+
+RANDOM_SEED = 42
+
+N_SEARCH_ITER = 12
+
+N_JOBS = 1
+
+PARAM_DISTRIBUTIONS = {
+    "mlp__hidden_layer_sizes": [
+        (16,),
+        (32,),
+        (64,),
+        (32, 16),
+        (64, 32),
+        (32, 16, 8),
+    ],
+    "mlp__activation": ["relu", "tanh"],
+    "mlp__alpha": [1e-4, 1e-3, 1e-2, 1e-1],
+    "mlp__learning_rate_init": [1e-4, 5e-4, 1e-3, 5e-3],
+}
+
+MODEL / SEARCH CONSTRUCTORS
+------------------------------------------------------------------------------------------
+
+[GroupKFold]
+GroupKFold(n_splits=N_INNER_FOLDS)
+
+[RandomizedSearchCV]
+RandomizedSearchCV(
+        estimator=pipe,
+        param_distributions=PARAM_DISTRIBUTIONS,
+        n_iter=N_SEARCH_ITER,
+        scoring="neg_root_mean_squared_error",
+        cv=inner_cv,
+        random_state=RANDOM_SEED,
+        n_jobs=N_JOBS,
+        refit=True,
+        return_train_score=False,
+        verbose=0,
+    )
+
+[StandardScaler]
+StandardScaler()
+
+[MLPRegressor]
+MLPRegressor(
+            solver="adam",
+            max_iter=1500,
+            early_stopping=False,
+            learning_rate="adaptive",
+            random_state=RANDOM_SEED,
+            tol=1e-4,
+        )
+
+
+==========================================================================================
+GAM
+==========================================================================================
+FILE: D:\NISAR_Mangrove_Paper\05_ML_DL\GAM\phase7g_gam.py
+EXISTS: True
+
+SETTINGS / SEARCH SPACES
+------------------------------------------------------------------------------------------
+FEATURE_SETS = {
+    "GAM_4P_MAIN": ["HH_dB", "HV_dB", "HH_minus_HV", "HV_SD"],
+    "GAM_3P_SENSITIVITY": ["HH_dB", "HV_dB", "HV_SD"],
+}
+
+N_OUTER_FOLDS = 5
+
+N_INNER_FOLDS = 4
+
+RANDOM_SEED = 42
+
+N_SEARCH_ITER = 16
+
+N_JOBS = 1
+
+PARAM_DISTRIBUTIONS = {
+    "spline__n_knots": [4, 5, 6, 7, 8, 10],
+    "spline__degree": [2, 3],
+    "ridge__alpha": [0.01, 0.1, 1.0, 10.0, 100.0, 1000.0],
+}
+
+MODEL / SEARCH CONSTRUCTORS
+------------------------------------------------------------------------------------------
+
+[GroupKFold]
+GroupKFold(n_splits=N_INNER_FOLDS)
+
+[RandomizedSearchCV]
+RandomizedSearchCV(
+        estimator=make_pipeline(),
+        param_distributions=PARAM_DISTRIBUTIONS,
+        n_iter=N_SEARCH_ITER,
+        scoring="neg_root_mean_squared_error",
+        cv=inner_cv,
+        random_state=RANDOM_SEED,
+        n_jobs=N_JOBS,
+        refit=True,
+        return_train_score=False,
+        verbose=0,
+    )
+
+[SplineTransformer]
+SplineTransformer(
+                n_knots=self.n_knots,
+                degree=self.degree,
+                include_bias=False,
+                knots="quantile",
+                extrapolation="linear",
+            )
+
+[StandardScaler]
+StandardScaler()
+
+[Ridge]
+Ridge()

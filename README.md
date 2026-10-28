@@ -1,4 +1,4 @@
-# NISAR–GEDI Mangrove AGBD Reproducibility Code
+﻿# NISAR–GEDI Mangrove AGBD Reproducibility Code
 
 Code supporting the manuscript:
 
@@ -14,28 +14,48 @@ Corresponding author: Sheikh Tawhidul Islam
 
 ## Repository design
 
-`code/executed_original/` preserves the supplied analysis scripts exactly as received from the authors' Windows workspaces.
+`code/executed_original/` preserves the supplied original analysis scripts from the authors' Windows workspaces.
 
 `code/portable/` contains minimally cleaned copies for public reuse. Path configuration was made portable through environment variables and interactive terminal pauses were removed. The analytical workflow and model logic were not intentionally altered.
 
-See `docs/RUN_ORDER.md` for the execution sequence and `docs/CODE_AUDIT.md` for the audit summary.
+`reviewer_validation/` contains the frozen major-revision validation package covering C1–C6 plus the C8 reproducibility audit, including exact fold memberships, OOF predictions, model settings, sensitivity analyses, QC tables, and SHA256 checksums.
+
+See `docs/RUN_ORDER.md` for the original workflow and `reviewer_validation/README.md` for the major-revision validation package.
 
 ## Scientific design
 
 - NISAR L2 GCOV PROVISIONAL as predictor source
 - GEDI L4A Version 3 as reference AGBD
-- 1,641 final matched footprints
+- 1,641 final matched GEDI–NISAR observations
 - 3-km spatial block tessellation
-- five outer folds
+- five geographic outer folds
 - 500-m fold-specific training exclusion
-- final analytical model: Extra Trees with nine locked NISAR-derived predictors
+- multiscale NISAR predictor evaluation
 - separate June 25, 2026 temporal-sensitivity experiment
+- explicit tests of geographic transferability, temporal mismatch, GEDI uncertainty, predictor-support scale, and mangrove-edge mixing
 
-The study is a sensor-sensitivity/methodological evaluation and does not present the final model as an operational wall-to-wall biomass estimator.
+The study is a sensor-sensitivity and methodological evaluation. It does not present the fitted model as an operational wall-to-wall biomass estimator.
 
-## Before Zenodo publication
+## Reproducibility archive
 
-1. Run a final reproduction check on the analysis machine.
-2. Save exact package versions (`python -m pip freeze > requirements_frozen.txt`).
-3. Add the exact NISAR and GEDI source-product manifest.
-4. Add the final DOI only after the GitHub v1.0.0 release is archived by Zenodo.
+**Release:** v1.0.2
+
+**Zenodo DOI:** 10.5281/zenodo.23740025
+
+The v1.0.2 archive supersedes v1.0.1 for reproducibility of the revised manuscript because it includes the complete reviewer-validation package.
+
+The frozen reviewer-validation package contains 463 files, with 462 entries in its SHA256 manifest. Raw NISAR, GEDI, and Global Mangrove Watch source data are not redistributed.
+
+Exact source-product identifiers and acquisition information are provided in:
+
+`reviewer_validation/docs/SOURCE_PRODUCTS.md`
+
+## Data availability
+
+Raw NISAR, GEDI, and Global Mangrove Watch products must be obtained from their original data providers.
+
+This repository provides the analysis code, frozen validation memberships, OOF predictions, hyperparameters, QC results, environmental information, source-product identifiers, and checksums required to reproduce the reported workflow once the source datasets are obtained.
+
+## License
+
+MIT

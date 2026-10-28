@@ -1,0 +1,91 @@
+====================================================================================================
+C3 STEP 1 — TEMPORAL-GAP STRATIFIED OOF PERFORMANCE
+====================================================================================================
+
+DESIGN
+----------------------------------------------------------------------------------------------------
+NO NEW MODEL WAS FITTED.
+Temporal strata were frozen in C3 Step 0 using GEDI-to-NISAR gap only.
+Primary analysis uses the already-frozen C1B geographic OOF predictions.
+Secondary analysis uses the already-frozen C2 leave-complete-GEDI-pass-out OOF predictions.
+Thus the temporal analysis does not select models or predictors using temporal-group outcomes.
+
+A. C1B GEOGRAPHIC OOF BY GAP STRATUM
+----------------------------------------------------------------------------------------------------
+      subset   n  n_blocks  observed_mean  RMSE_Mg_ha  MAE_Mg_ha        R2  Bias_Mg_ha  Pearson_r  Spearman_rho  baseline_RMSE  baseline_MAE  baseline_R2  delta_RMSE_model_minus_mean  delta_MAE_model_minus_mean  delta_R2_model_minus_mean
+ G1_SHORTEST 788        31      52.374785   38.951993  32.236749 -0.003755    0.687356   0.118877      0.056244      41.025239     34.486743    -0.113449                    -2.073246                   -2.249994                   0.109695
+G2_SHORT_MID 450        16      63.453026   45.438549  39.183671  0.023161  -10.792318   0.289738      0.252326      47.399724     41.479543    -0.062981                    -1.961175                   -2.295872                   0.086142
+ G3_LONG_MID 353        17      49.305010   40.185813  33.732699  0.013238    2.768246   0.190131      0.176902      40.780030     35.516019    -0.016160                    -0.594218                   -1.783319                   0.029398
+  G4_LONGEST  50        14      48.077590   35.554002  26.217612 -0.079382    3.118951   0.040490      0.030396      36.692585     28.500749    -0.149621                    -1.138583                   -2.283137                   0.070239
+
+B. LEAVE-PASS-OUT OOF BY GAP STRATUM
+----------------------------------------------------------------------------------------------------
+      subset   n  n_blocks  observed_mean  RMSE_Mg_ha  MAE_Mg_ha       R2  Bias_Mg_ha  Pearson_r  Spearman_rho  baseline_RMSE  baseline_MAE  baseline_R2  delta_RMSE_model_minus_mean  delta_MAE_model_minus_mean  delta_R2_model_minus_mean
+ G1_SHORTEST 788        31      52.374785   37.305597  30.722329 0.079304    3.084443   0.294850      0.267085      39.210467     32.909666    -0.017120                    -1.904870                   -2.187338                   0.096424
+G2_SHORT_MID 450        16      63.453026   45.930624  39.658671 0.001890  -13.115146   0.312488      0.268625      48.019616     42.191920    -0.090966                    -2.088993                   -2.533250                   0.092856
+ G3_LONG_MID 353        17      49.305010   40.310938  33.707105 0.007084    4.277048   0.190659      0.172316      40.869210     35.523308    -0.020609                    -0.558272                   -1.816204                   0.027693
+  G4_LONGEST  50        14      48.077590   33.580567  24.999411 0.037116    3.442846   0.238519      0.214886      34.873833     26.640521    -0.038478                    -1.293266                   -1.641110                   0.075594
+
+C. SHORTEST-GAP SUBSET VS ALL OTHER PASSES
+----------------------------------------------------------------------------------------------------
+                subset   n  n_blocks  observed_mean  RMSE_Mg_ha  MAE_Mg_ha        R2  Bias_Mg_ha  Pearson_r  Spearman_rho  baseline_RMSE  baseline_MAE  baseline_R2  delta_RMSE_model_minus_mean  delta_MAE_model_minus_mean  delta_R2_model_minus_mean           analysis  gap_min_days  gap_median_days  gap_max_days
+G1_SHORTEST_TWO_PASSES 788        31      52.374785   38.951993  32.236749 -0.003755    0.687356   0.118877      0.056244      41.025239     34.486743    -0.113449                    -2.073246                   -2.249994                   0.109695 C1B_GEOGRAPHIC_OOF    466.563333       525.958530     525.95853
+      ALL_OTHER_PASSES 853        38      56.696847   42.797290  36.167849  0.042045   -4.365070   0.230061      0.200240      44.185880     38.250863    -0.021127                    -1.388590                   -2.083014                   0.063172 C1B_GEOGRAPHIC_OOF    617.448403       676.106181     862.03735
+G1_SHORTEST_TWO_PASSES 788        31      52.374785   37.305597  30.722329  0.079304    3.084443   0.294850      0.267085      39.210467     32.909666    -0.017120                    -1.904870                   -2.187338                   0.096424   PASS_HOLDOUT_OOF    466.563333       525.958530     525.95853
+      ALL_OTHER_PASSES 853        38      56.696847   43.029036  36.336436  0.031642   -4.947099   0.214458      0.170050      44.485729     38.520654    -0.035033                    -1.456693                   -2.184218                   0.066675   PASS_HOLDOUT_OOF    617.448403       676.106181     862.03735
+
+D. PER-PASS LEAVE-PASS-OUT TEMPORAL METRICS
+----------------------------------------------------------------------------------------------------
+  gap_days  gap_stratum   n  n_blocks  low_power_n_lt_30  RMSE_Mg_ha  MAE_Mg_ha          R2  Bias_Mg_ha  delta_RMSE_model_minus_mean                                               source_file
+466.563333  G1_SHORTEST 113        14              False   33.246486  28.124046   -0.986214   22.242070                    -2.959110 GEDI04_A_2025159095805_O36749_03_T09852_02_004_02_V003.h5
+525.958530  G1_SHORTEST 675        20              False   37.942713  31.157300    0.080552   -0.122686                    -1.748569 GEDI04_A_2025100002900_O35828_02_T01905_02_004_02_V003.h5
+617.448403 G2_SHORT_MID   4         4               True   25.596435  23.280452    0.300643   -0.651033                    -5.035572 GEDI04_A_2025008124335_O34409_02_T07444_02_004_02_V003.h5
+676.106181 G2_SHORT_MID 446        13              False   46.072406  39.805560    0.000276  -13.226932                    -2.074751 GEDI04_A_2024315205623_O33499_03_T10158_02_004_02_V003.h5
+730.581794  G3_LONG_MID 341        11              False   40.234632  33.814450   -0.005814    4.415300                    -0.304807 GEDI04_A_2024261093130_O32654_02_T00482_02_004_02_V003.h5
+809.898403  G3_LONG_MID  12         6               True   42.421993  30.656712    0.252184    0.348369                    -6.905213 GEDI04_A_2024182015535_O31424_03_T07006_02_004_02_V003.h5
+815.185926   G4_LONGEST  47        12              False   33.942395  24.960438   -0.008704    2.027922                    -0.123284 GEDI04_A_2024176190133_O31342_02_T08867_02_004_02_V003.h5
+862.037350   G4_LONGEST   3         2               True   27.292697  25.609998 -142.412370   25.609998                   -18.413240 GEDI04_A_2024129223530_O30615_03_T00000_02_004_02_V003.h5
+
+E. PASS-LEVEL GAP–ERROR ASSOCIATION
+----------------------------------------------------------------------------------------------------
+               error_metric  n_passes  Spearman_rho  Spearman_p  Pearson_r  Pearson_p                        interpretation
+                 RMSE_Mg_ha         8      0.047619    0.910849   0.013233   0.975191 DESCRIPTIVE_ONLY_8_UNEQUAL_PASS_UNITS
+                  MAE_Mg_ha         8     -0.190476    0.651401  -0.106420   0.801964 DESCRIPTIVE_ONLY_8_UNEQUAL_PASS_UNITS
+                 Bias_Mg_ha         8      0.333333    0.419753   0.019089   0.964217 DESCRIPTIVE_ONLY_8_UNEQUAL_PASS_UNITS
+delta_RMSE_model_minus_mean         8     -0.142857    0.735765  -0.458539   0.253152 DESCRIPTIVE_ONLY_8_UNEQUAL_PASS_UNITS
+
+F. 3-KM BLOCK BOOTSTRAP BY GAP STRATUM
+----------------------------------------------------------------------------------------------------
+           subset     metric  n_blocks      mean    median    CI_2.5   CI_97.5  n_replicates
+  C1B_G1_SHORTEST delta_RMSE        31 -2.039952 -2.066713 -2.829707 -1.101032          5000
+  C1B_G1_SHORTEST  delta_MAE        31 -2.219409 -2.239638 -2.949646 -1.341570          5000
+  C1B_G1_SHORTEST   delta_R2        31  0.109907  0.110482  0.063717  0.150858          5000
+ C1B_G2_SHORT_MID delta_RMSE        16 -1.942124 -1.962127 -2.461522 -1.305393          5000
+ C1B_G2_SHORT_MID  delta_MAE        16 -2.253668 -2.302429 -2.957169 -1.201850          5000
+ C1B_G2_SHORT_MID   delta_R2        16  0.086342  0.086551  0.060660  0.109982          5000
+  C1B_G3_LONG_MID delta_RMSE        17 -0.656342 -0.642827 -2.926988  1.623397          5000
+  C1B_G3_LONG_MID  delta_MAE        17 -1.772079 -1.827930 -3.634371  0.441763          5000
+  C1B_G3_LONG_MID   delta_R2        17  0.033253  0.031999 -0.081433  0.154042          5000
+   C1B_G4_LONGEST delta_RMSE        14 -1.232566 -1.121719 -4.389702  1.285575          5000
+   C1B_G4_LONGEST  delta_MAE        14 -2.387291 -2.254459 -5.690299  0.172676          5000
+   C1B_G4_LONGEST   delta_R2        14  0.082462  0.072352 -0.087727  0.324142          5000
+ PASS_G1_SHORTEST delta_RMSE        31 -1.891257 -1.908120 -2.701879 -0.997956          5000
+ PASS_G1_SHORTEST  delta_MAE        31 -2.163395 -2.185765 -2.910545 -1.257248          5000
+ PASS_G1_SHORTEST   delta_R2        31  0.097353  0.097589  0.055824  0.137579          5000
+PASS_G2_SHORT_MID delta_RMSE        16 -2.102054 -2.062938 -3.255527 -1.279615          5000
+PASS_G2_SHORT_MID  delta_MAE        16 -2.521319 -2.496525 -3.895721 -1.430421          5000
+PASS_G2_SHORT_MID   delta_R2        16  0.094259  0.091867  0.061344  0.143840          5000
+ PASS_G3_LONG_MID delta_RMSE        17 -0.641813 -0.623651 -2.730060  1.310870          5000
+ PASS_G3_LONG_MID  delta_MAE        17 -1.824614 -1.875192 -3.541301  0.169242          5000
+ PASS_G3_LONG_MID   delta_R2        17  0.032880  0.031044 -0.065841  0.144022          5000
+  PASS_G4_LONGEST delta_RMSE        14 -1.383754 -1.295502 -5.072757  1.687483          5000
+  PASS_G4_LONGEST  delta_MAE        14 -1.786344 -1.605188 -5.636485  0.926517          5000
+  PASS_G4_LONGEST   delta_R2        14  0.085329  0.076954 -0.117668  0.349742          5000
+
+INTERPRETATION RULES
+----------------------------------------------------------------------------------------------------
+1. G1 contains substantially more observations than G4; stratum metrics therefore have unequal precision.
+2. Per-pass gap associations use only eight unequal acquisition units and are descriptive.
+3. A monotonic deterioration with larger gap would support temporal mismatch as a performance limitation.
+4. Absence of such a trend would NOT prove temporal mismatch irrelevant because gap is confounded with acquisition date, season, geography, hydrology, and possible disturbance.
+5. The existing June-2026 scene must therefore still be evaluated separately after this step.

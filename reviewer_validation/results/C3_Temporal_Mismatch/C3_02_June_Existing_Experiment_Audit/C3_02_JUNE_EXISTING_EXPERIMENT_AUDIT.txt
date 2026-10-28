@@ -1,0 +1,205 @@
+====================================================================================================
+C3 STEP 2 - READ-ONLY AUDIT OF EXISTING JUNE 25 2026 NISAR TEMPORAL EXPERIMENT
+====================================================================================================
+
+STATUS
+----------------------------------------------------------------------------------------------------
+NO MODEL WAS FITTED.
+NO FILE UNDER D:\new_nisar_data WAS MODIFIED.
+C1 and C2 remain frozen.
+C3 temporal-gap strata remain frozen.
+
+A. FILE INVENTORY AND HASHES
+----------------------------------------------------------------------------------------------------
+                 label  size_bytes                                                           sha256   rows  columns                                                                                                                                                path
+frozen_fold_membership         200 dad74a56662b4c252531f00676568d090440e8a5b4e8a68086951e93d57d7af3    5.0      6.0                              D:\new_nisar_data\Phase8B2_June25_Sensitivity_V2\03_Temporal_Model_Sensitivity\Tables\frozen_fold_membership_check.csv
+     june_fold_metrics        3885 1f6bc8bc866d8f7b491677689096920f37c6cfd3ba6e25a1425734b12c23c9e6   15.0     17.0                         D:\new_nisar_data\Phase8B2_June25_Sensitivity_V2\03_Temporal_Model_Sensitivity\Tables\June25_locked_models_fold_metrics.csv
+              june_oof      437932 680816eb93134a6dce45efeb2234709ed7315463ac34bd34c4d846b155df243f 4923.0      6.0                      D:\new_nisar_data\Phase8B2_June25_Sensitivity_V2\03_Temporal_Model_Sensitivity\Tables\June25_locked_models_OOF_predictions.csv
+          june_regimes        2401 8bdc217bfaf18380358b8c0c7748dc8d72260fc0dc1fb6cfbcf9b46fdca5b34f    9.0     18.0           D:\new_nisar_data\Phase8B2_June25_Sensitivity_V2\03_Temporal_Model_Sensitivity\Tables\June25_locked_models_performance_by_AGBD_regime.csv
+           june_pooled         894 78ad9d97b2f2846b8058ef0db43ab21d039ddd45ae0a2f7c114ffb40c207ed13    3.0     17.0                       D:\new_nisar_data\Phase8B2_June25_Sensitivity_V2\03_Temporal_Model_Sensitivity\Tables\June25_locked_models_pooled_metrics.csv
+           june_vs_sep        1265 c253c8cc09308db64ff8539c7fd83e2eec6f9cab5778aefbe92c0c528f65813e    3.0     17.0                   D:\new_nisar_data\Phase8B2_June25_Sensitivity_V2\03_Temporal_Model_Sensitivity\Tables\June25_vs_Sep17_locked_model_comparison.csv
+          paired_error         457 c8422b9593b3e1174552d87567778fba2a62b8d3216dae69c38ba63428022fff    3.0      6.0                   D:\new_nisar_data\Phase8B2_June25_Sensitivity_V2\03_Temporal_Model_Sensitivity\Tables\June25_vs_Sep17_paired_error_comparison.csv
+         sep_reference         890 a4e3dce65424ec73ff0721de977cc87caf0e4a781d0cf6e2e4975b14911b96dc    3.0     17.0               D:\new_nisar_data\Phase8B2_June25_Sensitivity_V2\03_Temporal_Model_Sensitivity\Tables\Sep17_reference_pooled_metrics_recalculated.csv
+            june_match     1546523 fcc1d8a61b3b1de7b6ec9b818e1d5ad550dbffa657712c71bffd16c17d71b55d 1641.0     66.0                                           D:\new_nisar_data\Phase8B2_June25_Sensitivity_V2\02_GEDI_Matching\Tables\GEDI_June25_matched_all_1641.csv
+    reference_snapshot     1195477 c624d8c3c29e295778012b2998058cd454d82d7e9655d0e128bdd8e8779db24e 1641.0     53.0 D:\new_nisar_data\Phase8B2_June25_Sensitivity_V2\02_GEDI_Matching\Reference_Snapshot\GEDI_NISAR_modeling_table_with_spatial_folds_READONLY_COPY.csv
+    original_qc_report        8562 1850f2000dd03a8ecd8c2f4f87f6f730279da74ed3376adab059f3bd3e8eac23    NaN      NaN               D:\new_nisar_data\Phase8B2_June25_Sensitivity_V2\03_Temporal_Model_Sensitivity\QC\JUNE25_LOCKED_MODEL_TEMPORAL_SENSITIVITY_REPORT.txt
+
+B. MATCHED-SAMPLE INTEGRITY
+----------------------------------------------------------------------------------------------------
+Primary master rows: 1641
+June matched rows: 1641
+Primary shot column: shot_number
+June shot column: shot_number
+June shot set equals primary shot set: True
+Reference snapshot shot set equals primary: True
+
+C. GEDI-TO-NISAR GAP COMPARISON
+----------------------------------------------------------------------------------------------------
+      scene          gap_column    n   min_days  median_days  mean_days  max_days
+ Sep17_2026 delta_days_to_NISAR 1641 466.563333   676.106181 616.394782 862.03735
+June25_2026 delta_days_to_NISAR 1641 466.563333   676.106181 616.394782 862.03735
+Median temporal-gap reduction (Sep minus June): 0.0
+
+D. FROZEN FOLD MEMBERSHIP CHECK
+----------------------------------------------------------------------------------------------------
+ fold  train_n  test_n  expected_train_n  expected_test_n  membership_pass
+    1     1207     328              1207              328             True
+    2     1162     335              1162              335             True
+    3     1211     325              1211              325             True
+    4     1223     329              1223              329             True
+    5     1213     324              1213              324             True
+
+E. JUNE OOF INTEGRITY
+----------------------------------------------------------------------------------------------------
+             model  rows  unique_shots  shot_set_matches_primary_1641
+ ET_3P_SENSITIVITY  1641          1641                           True
+Linear_baseline_3P  1641          1641                           True
+MLP_3P_SENSITIVITY  1641          1641                           True
+
+F. JUNE POOLED METRICS - ORIGINAL TABLE
+----------------------------------------------------------------------------------------------------
+ scene              model  fold    n  train_n  test_n  RMSE_Mg_ha  MAE_Mg_ha       R2  Bias_Mg_ha  rRMSE_percent  Pearson_r  Spearman_rho  observed_mean  predicted_mean  observed_sd  predicted_sd
+June25  ET_3P_SENSITIVITY   NaN 1641      NaN     NaN   41.268983  34.961328 0.012325   -0.074833      75.554585   0.111184      0.096559      54.621414       54.546581    41.538346      4.857593
+June25 Linear_baseline_3P   NaN 1641      NaN     NaN   41.158573  34.792575 0.017603   -0.040134      75.352448   0.134657      0.118019      54.621414       54.581281    41.538346      6.548220
+June25 MLP_3P_SENSITIVITY   NaN 1641      NaN     NaN   41.219906  34.849204 0.014673   -0.455911      75.464736   0.126546      0.110456      54.621414       54.165503    41.538346      6.707431
+
+G. SEPTEMBER REFERENCE METRICS - ORIGINAL RECALCULATED TABLE
+----------------------------------------------------------------------------------------------------
+scene              model  fold    n  train_n  test_n  RMSE_Mg_ha  MAE_Mg_ha       R2  Bias_Mg_ha  rRMSE_percent  Pearson_r  Spearman_rho  observed_mean  predicted_mean  observed_sd  predicted_sd
+Sep17 Linear_baseline_3P   NaN 1641      NaN     NaN   41.321429  34.937301 0.009814   -0.048020      75.650602   0.101596      0.084732      54.621414       54.573394    41.538346      5.155396
+Sep17  ET_3P_SENSITIVITY   NaN 1641      NaN     NaN   41.262069  34.980262 0.012656    0.010590      75.541927   0.112509      0.093041      54.621414       54.632004    41.538346      4.618342
+Sep17 MLP_3P_SENSITIVITY   NaN 1641      NaN     NaN   41.219863  34.808311 0.014675   -0.134326      75.464657   0.124057      0.100737      54.621414       54.487088    41.538346      6.255705
+
+H. JUNE VS SEPTEMBER LOCKED-MODEL COMPARISON
+----------------------------------------------------------------------------------------------------
+             model  Sep17_RMSE  June25_RMSE  June_minus_Sep_RMSE  RMSE_percent_change  Sep17_MAE  June25_MAE  Sep17_R2  June25_R2  June_minus_Sep_R2  Sep17_Pearson_r  June25_Pearson_r  Sep17_predicted_SD  June25_predicted_SD  observed_SD  Sep17_pred_to_obs_SD_ratio  June25_pred_to_obs_SD_ratio
+Linear_baseline_3P   41.321429    41.158573            -0.162856            -0.394120  34.937301   34.792575  0.009814   0.017603           0.007790         0.101596          0.134657            5.155396             6.548220    41.538346                    0.124112                     0.157643
+ ET_3P_SENSITIVITY   41.262069    41.268983             0.006914             0.016757  34.980262   34.961328  0.012656   0.012325          -0.000331         0.112509          0.111184            4.618342             4.857593    41.538346                    0.111183                     0.116942
+MLP_3P_SENSITIVITY   41.219863    41.219906             0.000043             0.000104  34.808311   34.849204  0.014675   0.014673          -0.000002         0.124057          0.126546            6.255705             6.707431    41.538346                    0.150601                     0.161476
+
+I. PAIRED ERROR COMPARISON
+----------------------------------------------------------------------------------------------------
+             model    n  mean_June_minus_Sep_abs_error  median_June_minus_Sep_abs_error  fraction_shots_June_lower_abs_error  mean_June_minus_Sep_squared_error
+Linear_baseline_3P 1641                      -0.144727                        -0.052460                             0.503961                         -13.432365
+ ET_3P_SENSITIVITY 1641                      -0.018934                         0.056503                             0.497867                           0.570634
+MLP_3P_SENSITIVITY 1641                       0.040893                         0.039982                             0.496039                           0.003543
+
+J. ORIGINAL JUNE FOLD METRICS
+----------------------------------------------------------------------------------------------------
+ scene              model  fold   n  train_n  test_n  RMSE_Mg_ha  MAE_Mg_ha       R2  Bias_Mg_ha  rRMSE_percent  Pearson_r  Spearman_rho  observed_mean  predicted_mean  observed_sd  predicted_sd
+June25 Linear_baseline_3P     1 328     1207     328   41.260690  35.650385 0.023777    1.910950      76.982296   0.160995      0.155141      53.597635       55.508585    41.823944      6.441731
+June25  ET_3P_SENSITIVITY     1 328     1207     328   41.630789  35.980132 0.006185    1.692748      77.672809   0.092726      0.077359      53.597635       55.290383    41.823944      5.038517
+June25 MLP_3P_SENSITIVITY     1 328     1207     328   41.388384  35.779017 0.017725    0.694038      77.220541   0.138326      0.136974      53.597635       54.291673    41.823944      7.193081
+June25 Linear_baseline_3P     2 335     1162     335   41.702624  34.380932 0.026399   -2.585072      74.138849   0.176814      0.165603      56.249354       53.664282    42.327439      6.065490
+June25  ET_3P_SENSITIVITY     2 335     1162     335   41.936335  34.678990 0.015456   -2.443222      74.554341   0.143828      0.146767      56.249354       53.806132    42.327439      4.248143
+June25 MLP_3P_SENSITIVITY     2 335     1162     335   41.975437  34.509282 0.013619   -2.438461      74.623855   0.134691      0.128913      56.249354       53.810893    42.327439      7.163872
+June25 Linear_baseline_3P     3 325     1211     325   40.716182  34.929449 0.002407   -0.237068      74.081997   0.094790      0.074728      54.960967       54.723899    40.828136      7.172905
+June25  ET_3P_SENSITIVITY     3 325     1211     325   40.566909  34.734883 0.009708   -0.393050      73.810399   0.102101      0.102231      54.960967       54.567917    40.828136      5.187951
+June25 MLP_3P_SENSITIVITY     3 325     1211     325   40.665987  34.968604 0.004865   -0.811659      73.990668   0.096373      0.071801      54.960967       54.149308    40.828136      6.525300
+June25 Linear_baseline_3P     4 329     1223     329   40.489229  34.150642 0.016269    0.837638      75.056412   0.130006      0.138156      53.945064       54.782702    40.884849      5.909721
+June25  ET_3P_SENSITIVITY     4 329     1223     329   40.554623  34.243168 0.013089    0.631910      75.177636   0.115616      0.102615      53.945064       54.576973    40.884849      4.980487
+June25 MLP_3P_SENSITIVITY     4 329     1223     329   40.488698  34.197253 0.016295    0.754368      75.055427   0.128984      0.136922      53.945064       54.699431    40.884849      5.250871
+June25 Linear_baseline_3P     5 324     1213     324   41.601956  34.864334 0.015357   -0.077739      76.585670   0.129295      0.092322      54.320810       54.243071    41.989967      6.976009
+June25  ET_3P_SENSITIVITY     5 324     1213     324   41.621367  35.178256 0.014438    0.186111      76.621403   0.120541      0.112542      54.320810       54.506921    41.989967      4.703636
+June25 MLP_3P_SENSITIVITY     5 324     1213     324   41.547161  34.801619 0.017949   -0.442308      76.484797   0.138369      0.094201      54.320810       53.878503    41.989967      7.193790
+
+K. ORIGINAL AGBD-REGIME RESULTS
+----------------------------------------------------------------------------------------------------
+ scene              model  fold   n  train_n  test_n  RMSE_Mg_ha  MAE_Mg_ha         R2  Bias_Mg_ha  rRMSE_percent  Pearson_r  Spearman_rho  observed_mean  predicted_mean  observed_sd  predicted_sd AGBD_regime
+June25  ET_3P_SENSITIVITY   NaN 748      NaN     NaN   40.785939  37.851835  -6.676048   37.824470     254.731318   0.069308      0.022152      16.011356       53.835827    14.730996      5.162718         <50
+June25  ET_3P_SENSITIVITY   NaN 642      NaN     NaN   23.608789  19.360149  -1.729224  -18.358807      32.033719   0.028771      0.015905      73.699809       55.341003    14.301864      4.448671     50-<100
+June25  ET_3P_SENSITIVITY   NaN 251      NaN     NaN   68.933459  66.251598 -12.922892  -66.251598      57.024310  -0.000409      0.019574     120.884337       54.632739    18.511099      4.611624       >=100
+June25 Linear_baseline_3P   NaN 748      NaN     NaN   40.650430  37.581035  -6.625127   37.506296     253.884988   0.093784      0.020617      16.011356       53.517652    14.730996      6.946647         <50
+June25 Linear_baseline_3P   NaN 642      NaN     NaN   23.726468  19.434984  -1.756499  -18.090075      32.193391   0.017495      0.013403      73.699809       55.609735    14.301864      5.869947     50-<100
+June25 Linear_baseline_3P   NaN 251      NaN     NaN   68.636438  65.763907 -12.803169  -65.763907      56.778603  -0.010760     -0.025430     120.884337       55.120430    18.511099      6.508453       >=100
+June25 MLP_3P_SENSITIVITY   NaN 748      NaN     NaN   40.338068  37.298759  -6.508392   37.171846     251.934109   0.116378      0.045599      16.011356       53.183202    14.730996      7.342763         <50
+June25 MLP_3P_SENSITIVITY   NaN 642      NaN     NaN   24.024115  19.692472  -1.826093  -18.547017      32.597255   0.018627      0.010460      73.699809       55.152792    14.301864      5.656911     50-<100
+June25 MLP_3P_SENSITIVITY   NaN 251      NaN     NaN   69.159449  66.316756 -13.014331  -66.316756      57.211257   0.009638     -0.021232     120.884337       54.567581    18.511099      6.813831       >=100
+
+L. ORIGINAL JUNE QC REPORT - VERBATIM COPY
+----------------------------------------------------------------------------------------------------
+PHASE 8B.2C — JUNE 25 LOCKED-MODEL TEMPORAL SENSITIVITY
+==================================================================================
+Run time: 2026-10-07T22:02:37+08:00
+
+SCIENTIFIC DESIGN
+- Same frozen 1,641 GEDI observations.
+- Same five outer spatial folds.
+- Same 500 m buffered training membership.
+- Same three predictors: HH_dB, HV_dB, HV_SD.
+- Same September-selected fold-specific ET and MLP hyperparameters.
+- StandardScaler for MLP is refit using June training predictors within each fold.
+- No June hyperparameter tuning and no outer-test selection.
+- Therefore the main experimental change is NISAR acquisition date / predictor values.
+
+SEPTEMBER-SELECTED EXTRA TREES 3P SETTINGS
+{1: {'n_estimators': 700, 'min_samples_split': 10, 'min_samples_leaf': 6, 'max_features': 0.8, 'max_depth': 8, 'bootstrap': True}, 2: {'n_estimators': 700, 'min_samples_split': 10, 'min_samples_leaf': 6, 'max_features': 0.8, 'max_depth': 8, 'bootstrap': True}, 3: {'n_estimators': 700, 'min_samples_split': 10, 'min_samples_leaf': 6, 'max_features': 0.8, 'max_depth': 8, 'bootstrap': True}, 4: {'n_estimators': 700, 'min_samples_split': 5, 'min_samples_leaf': 6, 'max_features': 0.8, 'max_depth': 8, 'bootstrap': False}, 5: {'n_estimators': 700, 'min_samples_split': 10, 'min_samples_leaf': 6, 'max_features': 0.8, 'max_depth': 8, 'bootstrap': True}}
+
+SEPTEMBER-SELECTED MLP 3P SETTINGS
+{1: {'learning_rate_init': 0.001, 'hidden_layer_sizes': (32,), 'alpha': 0.1, 'activation': 'relu'}, 2: {'learning_rate_init': 0.001, 'hidden_layer_sizes': (32,), 'alpha': 0.1, 'activation': 'relu'}, 3: {'learning_rate_init': 0.0005, 'hidden_layer_sizes': (64,), 'alpha': 0.1, 'activation': 'tanh'}, 4: {'learning_rate_init': 0.0005, 'hidden_layer_sizes': (64,), 'alpha': 0.1, 'activation': 'tanh'}, 5: {'learning_rate_init': 0.0005, 'hidden_layer_sizes': (64,), 'alpha': 0.1, 'activation': 'tanh'}}
+
+JUNE POOLED OUT-OF-FOLD PERFORMANCE
+ scene              model fold    n train_n test_n  RMSE_Mg_ha  MAE_Mg_ha       R2  Bias_Mg_ha  rRMSE_percent  Pearson_r  Spearman_rho  observed_mean  predicted_mean  observed_sd  predicted_sd
+June25  ET_3P_SENSITIVITY None 1641    None   None   41.268983  34.961328 0.012325   -0.074833      75.554585   0.111184      0.096559      54.621414       54.546581    41.538346      4.857593
+June25 Linear_baseline_3P None 1641    None   None   41.158573  34.792575 0.017603   -0.040134      75.352448   0.134657      0.118019      54.621414       54.581281    41.538346      6.548220
+June25 MLP_3P_SENSITIVITY None 1641    None   None   41.219906  34.849204 0.014673   -0.455911      75.464736   0.126546      0.110456      54.621414       54.165503    41.538346      6.707431
+
+SEPTEMBER REFERENCE POOLED PERFORMANCE RECALCULATED FROM OOF TABLES
+scene              model fold    n train_n test_n  RMSE_Mg_ha  MAE_Mg_ha       R2  Bias_Mg_ha  rRMSE_percent  Pearson_r  Spearman_rho  observed_mean  predicted_mean  observed_sd  predicted_sd
+Sep17 Linear_baseline_3P None 1641    None   None   41.321429  34.937301 0.009814   -0.048020      75.650602   0.101596      0.084732      54.621414       54.573394    41.538346      5.155396
+Sep17  ET_3P_SENSITIVITY None 1641    None   None   41.262069  34.980262 0.012656    0.010590      75.541927   0.112509      0.093041      54.621414       54.632004    41.538346      4.618342
+Sep17 MLP_3P_SENSITIVITY None 1641    None   None   41.219863  34.808311 0.014675   -0.134326      75.464657   0.124057      0.100737      54.621414       54.487088    41.538346      6.255705
+
+JUNE VS SEPTEMBER COMPARISON
+             model  Sep17_RMSE  June25_RMSE  June_minus_Sep_RMSE  RMSE_percent_change  Sep17_MAE  June25_MAE  Sep17_R2  June25_R2  June_minus_Sep_R2  Sep17_Pearson_r  June25_Pearson_r  Sep17_predicted_SD  June25_predicted_SD  observed_SD  Sep17_pred_to_obs_SD_ratio  June25_pred_to_obs_SD_ratio
+Linear_baseline_3P   41.321429    41.158573            -0.162856            -0.394120  34.937301   34.792575  0.009814   0.017603           0.007790         0.101596          0.134657            5.155396             6.548220    41.538346                    0.124112                     0.157643
+ ET_3P_SENSITIVITY   41.262069    41.268983             0.006914             0.016757  34.980262   34.961328  0.012656   0.012325          -0.000331         0.112509          0.111184            4.618342             4.857593    41.538346                    0.111183                     0.116942
+MLP_3P_SENSITIVITY   41.219863    41.219906             0.000043             0.000104  34.808311   34.849204  0.014675   0.014673          -0.000002         0.124057          0.126546            6.255705             6.707431    41.538346                    0.150601                     0.161476
+
+PAIRED SHOT-WISE ERROR COMPARISON
+             model    n  mean_June_minus_Sep_abs_error  median_June_minus_Sep_abs_error  fraction_shots_June_lower_abs_error  mean_June_minus_Sep_squared_error
+Linear_baseline_3P 1641                      -0.144727                        -0.052460                             0.503961                         -13.432365
+ ET_3P_SENSITIVITY 1641                      -0.018934                         0.056503                             0.497867                           0.570634
+MLP_3P_SENSITIVITY 1641                       0.040893                         0.039982                             0.496039                           0.003543
+
+JUNE PERFORMANCE BY BROAD AGBD REGIME
+ scene              model fold   n train_n test_n  RMSE_Mg_ha  MAE_Mg_ha         R2  Bias_Mg_ha  rRMSE_percent  Pearson_r  Spearman_rho  observed_mean  predicted_mean  observed_sd  predicted_sd AGBD_regime
+June25  ET_3P_SENSITIVITY None 748    None   None   40.785939  37.851835  -6.676048   37.824470     254.731318   0.069308      0.022152      16.011356       53.835827    14.730996      5.162718         <50
+June25  ET_3P_SENSITIVITY None 642    None   None   23.608789  19.360149  -1.729224  -18.358807      32.033719   0.028771      0.015905      73.699809       55.341003    14.301864      4.448671     50-<100
+June25  ET_3P_SENSITIVITY None 251    None   None   68.933459  66.251598 -12.922892  -66.251598      57.024310  -0.000409      0.019574     120.884337       54.632739    18.511099      4.611624       >=100
+June25 Linear_baseline_3P None 748    None   None   40.650430  37.581035  -6.625127   37.506296     253.884988   0.093784      0.020617      16.011356       53.517652    14.730996      6.946647         <50
+June25 Linear_baseline_3P None 642    None   None   23.726468  19.434984  -1.756499  -18.090075      32.193391   0.017495      0.013403      73.699809       55.609735    14.301864      5.869947     50-<100
+June25 Linear_baseline_3P None 251    None   None   68.636438  65.763907 -12.803169  -65.763907      56.778603  -0.010760     -0.025430     120.884337       55.120430    18.511099      6.508453       >=100
+June25 MLP_3P_SENSITIVITY None 748    None   None   40.338068  37.298759  -6.508392   37.171846     251.934109   0.116378      0.045599      16.011356       53.183202    14.730996      7.342763         <50
+June25 MLP_3P_SENSITIVITY None 642    None   None   24.024115  19.692472  -1.826093  -18.547017      32.597255   0.018627      0.010460      73.699809       55.152792    14.301864      5.656911     50-<100
+June25 MLP_3P_SENSITIVITY None 251    None   None   69.159449  66.316756 -13.014331  -66.316756      57.211257   0.009638     -0.021232     120.884337       54.567581    18.511099      6.813831       >=100
+
+INTERPRETATION RULES
+- A modest numerical change is not enough to claim temporal mismatch was the main limitation.
+- Evidence for a meaningful temporal-alignment benefit should be consistent across
+  RMSE/R2/correlation, folds, biomass regimes, and prediction dynamic range.
+- The June scene is only 84 days closer than the September scene in median temporal gap;
+  its median GEDI gap remains about 592 days.
+- Do not select a new final model from this sensitivity test alone.
+
+KEY COMPARISON — MLP 3P
+Sep RMSE: 41.219863
+June RMSE: 41.219906
+RMSE change (%): 0.0001
+Sep R2: 0.014675
+June R2: 0.014673
+R2 change: -0.000002
+Sep predicted/observed SD ratio: 0.150601
+June predicted/observed SD ratio: 0.161476
+
+NEXT DECISION
+Review whether June materially and consistently improves held-out evidence.
+If improvement remains small/weak, do not chase more acquisition dates; proceed to
+Phase 8C predictor expansion and keep temporal mismatch as a documented limitation.
+
+INTERPRETATION BOUNDARY
+----------------------------------------------------------------------------------------------------
+This audit does not reinterpret the June experiment as a controlled temporal experiment.
+June 25 and September 17 differ not only in GEDI-to-NISAR temporal gap but also in acquisition date, season, hydrology, moisture, tide, and potentially other scene conditions.
+Therefore any similar model performance can support only the statement that the tested 84-day reduction did not materially alter nonlinear model performance.
+It cannot establish that temporal mismatch is irrelevant.
