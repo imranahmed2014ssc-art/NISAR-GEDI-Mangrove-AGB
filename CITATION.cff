@@ -1,19 +1,26 @@
-﻿cff-version: 1.2.0
-message: "Please cite the archived Zenodo v1.0.2 release of this repository."
-title: "Code and Supporting Material for Early Evaluation of NISAR L-Band Sensitivity to Mangrove Aboveground Biomass Using GEDI and Spatial Machine Learning"
+cff-version: 1.2.0
+message: "Please cite the archived v1.1.0 reproducibility release of this repository."
+title: "Reproducibility Package for Conditional Association of Provisional NISAR L-Band GCOV Predictors with GEDI-Derived Mangrove Biomass in the Bangladesh Sundarbans"
 type: software
 authors:
   - family-names: "Ahmed"
     given-names: "Imran"
+    affiliation: "Beihang University, Hangzhou International Campus, Hangzhou 311115, Zhejiang, China"
     orcid: "https://orcid.org/0009-0004-6010-620X"
   - family-names: "Islam"
-    given-names: "Md. Sarafat"
-    orcid: "https://orcid.org/0009-0006-5661-9410"
-  - family-names: "Islam"
     given-names: "Sheikh Tawhidul"
+    affiliation: "Regional Centre for Space Science and Technology Education in Asia and the Pacific (RCSSTEAP), Beihang University, Hangzhou 311115, Zhejiang, China"
     orcid: "https://orcid.org/0000-0002-9697-4306"
-version: "1.0.2"
-doi: "10.5281/zenodo.23740025"
+  - family-names: "Islam"
+    given-names: "Md. Sarafat"
+    affiliation: "University of Science and Technology of China (USTC), Hefei 230026, Anhui, China"
+    orcid: "https://orcid.org/0009-0006-5661-9410"
+  - family-names: "Zhang"
+    given-names: "Yue"
+    affiliation: "Beihang University, Hangzhou International Campus, Hangzhou 311115, Zhejiang, China"
+    orcid: "https://orcid.org/0009-0000-6723-5822"
+version: "1.1.0"
+date-released: "2026-11-18"
 repository-code: "https://github.com/imranahmed2014ssc-art/NISAR-GEDI-Mangrove-AGB"
 license: MIT
 keywords:
@@ -22,5 +29,5 @@ keywords:
   - mangrove
   - aboveground biomass
   - L-band SAR
-  - machine learning
   - spatial cross-validation
+  - reproducibility
